@@ -7,6 +7,8 @@ import { RouteDetails } from "../RouteDetails/RouteDetails";
 import { StatsView } from "../../features/availability-timeline/StatsView";
 import { VariantComparison } from "../../features/variant-comparison/VariantComparison";
 
+import { LazyGlobeMap } from "../MapView/LazyGlobeMap";
+
 export interface ViewDef {
   id: MainView;
   label: string;
@@ -22,6 +24,7 @@ export interface ViewDef {
 export const VIEW_DEFS: ViewDef[] = [
   { id: "map-equirect", label: "Карта (прямоугольная)", icon: "globe", render: () => <EquirectangularMap /> },
   { id: "map-polar", label: "Карта (полярная)", icon: "compass", render: () => <PolarMap /> },
+  { id: "map-3d", label: "Карта (3D)", icon: "globe", render: () => <LazyGlobeMap /> },
   { id: "stats", label: "Статистика", icon: "chart", render: () => <StatsView /> },
   { id: "compare", label: "Сравнение", icon: "compare", render: () => <VariantComparison /> },
   { id: "route", label: "Маршрут", icon: "route", render: () => <RouteDetails /> },

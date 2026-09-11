@@ -9,7 +9,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TimeDisplayUnit } from "../utils/time";
 
-export type MainView = "map-equirect" | "map-polar" | "stats" | "compare" | "route";
+export type MainView = "map-equirect" | "map-polar" | "map-3d" | "stats" | "compare" | "route";
 
 interface UiState {
   sidebarCollapsed: boolean;
