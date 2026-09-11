@@ -15,6 +15,8 @@ export function SettingsPanel() {
   const setShowAllIsl = useUiStore((s) => s.setShowAllIsl);
   const timeUnit = useUiStore((s) => s.timeUnit);
   const setTimeUnit = useUiStore((s) => s.setTimeUnit);
+  const linkAssumptions = useUiStore((s) => s.linkAssumptions);
+  const setLinkAssumptions = useUiStore((s) => s.setLinkAssumptions);
 
   const effectiveScenario = useScenarioStore((s) => s.effectiveScenario);
   const series = useScenarioStore((s) => s.series);
@@ -66,6 +68,58 @@ export function SettingsPanel() {
             <Chip label="ЧЧ:ММ:СС" active={timeUnit === "hms"} onClick={() => setTimeUnit("hms")} />
           </div>
         </div>
+      </div>
+
+      <div className={styles.group}>
+        <span className={styles.groupTitle}>Допущения расчёта RTT/FSPL</span>
+        <span className={styles.hint}>
+          Не входят в схему сценария — используются только для RTT, FSPL и статуса линка. Вступают в силу после
+          повторного «Запустить расчёт».
+        </span>
+        <label className={styles.assumptionRow}>
+          <span>Частота, ГГц (для FSPL)</span>
+          <input
+            type="number"
+            className={styles.assumptionInput}
+            min={0.1}
+            step={0.5}
+            value={linkAssumptions.frequency_ghz}
+            onChange={(e) => setLinkAssumptions({ frequency_ghz: Number(e.target.value) })}
+          />
+        </label>
+        <label className={styles.assumptionRow}>
+          <span>Задержка коммутации на переход, мс</span>
+          <input
+            type="number"
+            className={styles.assumptionInput}
+            min={0}
+            step={0.5}
+            value={linkAssumptions.per_hop_processing_delay_ms}
+            onChange={(e) => setLinkAssumptions({ per_hop_processing_delay_ms: Number(e.target.value) })}
+          />
+        </label>
+        <label className={styles.assumptionRow}>
+          <span>Порог «деградирован»: запас по углу, °</span>
+          <input
+            type="number"
+            className={styles.assumptionInput}
+            min={0}
+            step={1}
+            value={linkAssumptions.degraded_elevation_margin_deg}
+            onChange={(e) => setLinkAssumptions({ degraded_elevation_margin_deg: Number(e.target.value) })}
+          />
+        </label>
+        <label className={styles.assumptionRow}>
+          <span>Порог «деградирован»: RTT, мс</span>
+          <input
+            type="number"
+            className={styles.assumptionInput}
+            min={0}
+            step={1}
+            value={linkAssumptions.degraded_rtt_ms}
+            onChange={(e) => setLinkAssumptions({ degraded_rtt_ms: Number(e.target.value) })}
+          />
+        </label>
       </div>
     </Modal>
   );

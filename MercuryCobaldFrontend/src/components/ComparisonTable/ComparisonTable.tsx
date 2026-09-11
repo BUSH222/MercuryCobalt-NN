@@ -82,6 +82,42 @@ export function ComparisonTable({ columns, clients, targetAvailability, timeUnit
                   return <td key={col.id}>{m?.min_hop_count == null ? "—" : `${m.min_hop_count}–${m.max_hop_count}`}</td>;
                 })}
               </tr>
+              <tr key={`${client.id}-downtime`}>
+                <td className={styles.rowLabelCell}>Суммарный простой</td>
+                {columns.map((col) => (
+                  <td key={col.id}>{formatDuration(col.metricsByClient[client.id]?.total_downtime_s ?? 0, timeUnit)}</td>
+                ))}
+              </tr>
+              <tr key={`${client.id}-outage-count`}>
+                <td className={styles.rowLabelCell}>Число перерывов</td>
+                {columns.map((col) => (
+                  <td key={col.id}>{col.metricsByClient[client.id]?.outage_count ?? "—"}</td>
+                ))}
+              </tr>
+              <tr key={`${client.id}-rtt`}>
+                <td className={styles.rowLabelCell}>Средний / p95 RTT</td>
+                {columns.map((col) => {
+                  const m = col.metricsByClient[client.id];
+                  return (
+                    <td key={col.id}>
+                      {m?.mean_rtt_ms == null ? "—" : `${m.mean_rtt_ms.toFixed(0)} / ${m.p95_rtt_ms?.toFixed(0)} мс`}
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr key={`${client.id}-jitter`}>
+                <td className={styles.rowLabelCell}>Джиттер</td>
+                {columns.map((col) => {
+                  const jitter = col.metricsByClient[client.id]?.jitter_ms;
+                  return <td key={col.id}>{jitter == null ? "—" : `${jitter.toFixed(1)} мс`}</td>;
+                })}
+              </tr>
+              <tr key={`${client.id}-handovers`}>
+                <td className={styles.rowLabelCell}>Handover'ов</td>
+                {columns.map((col) => (
+                  <td key={col.id}>{col.metricsByClient[client.id]?.handover_count ?? "—"}</td>
+                ))}
+              </tr>
             </Fragment>
           ))}
         </tbody>

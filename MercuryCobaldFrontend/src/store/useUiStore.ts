@@ -8,6 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TimeDisplayUnit } from "../utils/time";
+import { DEFAULT_LINK_ASSUMPTIONS, type LinkAssumptions } from "../domain";
 
 export type MainView = "map-equirect" | "map-polar" | "map-3d" | "stats" | "compare" | "route";
 
@@ -20,6 +21,8 @@ interface UiState {
   showAllIsl: boolean;
   timeUnit: TimeDisplayUnit;
   settingsOpen: boolean;
+  /** Display-tunable physics assumptions (frequency, per-hop delay, status thresholds); not part of the scenario schema. */
+  linkAssumptions: LinkAssumptions;
   toggleSidebar: () => void;
   /** Opens/closes a panel; refuses to close the last remaining open panel. */
   togglePanel: (view: MainView) => void;
@@ -27,6 +30,7 @@ interface UiState {
   setShowAllIsl: (show: boolean) => void;
   setTimeUnit: (unit: TimeDisplayUnit) => void;
   setSettingsOpen: (open: boolean) => void;
+  setLinkAssumptions: (patch: Partial<LinkAssumptions>) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -38,6 +42,7 @@ export const useUiStore = create<UiState>()(
       showAllIsl: false,
       timeUnit: "hms",
       settingsOpen: false,
+      linkAssumptions: DEFAULT_LINK_ASSUMPTIONS,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       togglePanel: (view) =>
         set((s) => {
@@ -52,6 +57,7 @@ export const useUiStore = create<UiState>()(
       setShowAllIsl: (show) => set({ showAllIsl: show }),
       setTimeUnit: (unit) => set({ timeUnit: unit }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
+      setLinkAssumptions: (patch) => set((s) => ({ linkAssumptions: { ...s.linkAssumptions, ...patch } })),
     }),
     {
       name: "cosmohack-ui-settings",
@@ -60,6 +66,7 @@ export const useUiStore = create<UiState>()(
         openPanels: state.openPanels,
         showAllIsl: state.showAllIsl,
         timeUnit: state.timeUnit,
+        linkAssumptions: state.linkAssumptions,
       }),
     },
   ),

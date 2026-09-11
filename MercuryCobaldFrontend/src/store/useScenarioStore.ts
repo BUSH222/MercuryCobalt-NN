@@ -11,6 +11,7 @@
 import { create } from "zustand";
 import type {
   ConfigOverrides,
+  CoverageCandidate,
   GroundSite,
   LaunchStage,
   SatelliteFailure,
@@ -22,6 +23,7 @@ import { createDefaultOverrides } from "../domain";
 import { buildEffectiveScenario } from "../utils/effectiveScenario";
 import { generateId } from "../utils/id";
 import { scenarioApi } from "../services/scenarioApi";
+import { useUiStore } from "./useUiStore";
 import type { ValidationError } from "../utils/validation";
 
 interface ScenarioState {
@@ -36,6 +38,9 @@ interface ScenarioState {
   selectedClientId: string | null;
   selectedSatelliteId: string | null;
   timeIndex: number;
+  coverageCandidates: CoverageCandidate[];
+  coverageSearching: boolean;
+  coverageError: string | null;
 
   loadScenario: (scenario: Scenario) => Promise<void>;
   setLoadErrors: (errors: ValidationError[]) => void;
@@ -50,6 +55,8 @@ interface ScenarioState {
   selectClient: (id: string | null) => void;
   selectSatellite: (id: string | null) => void;
   setTimeIndex: (index: number) => void;
+  searchCoverage: () => Promise<void>;
+  applyCoverageCandidate: (candidate: CoverageCandidate) => void;
 }
 
 function firstClient(scenario: Scenario): GroundSite | undefined {
@@ -68,6 +75,9 @@ export const useScenarioStore = create<ScenarioState>()((set, get) => ({
   selectedClientId: null,
   selectedSatelliteId: null,
   timeIndex: 0,
+  coverageCandidates: [],
+  coverageSearching: false,
+  coverageError: null,
 
   loadScenario: async (scenario) => {
     const overrides = createDefaultOverrides(scenario.design.launch_stage);
@@ -129,7 +139,8 @@ export const useScenarioStore = create<ScenarioState>()((set, get) => ({
     if (!effectiveScenario) return;
     set({ computing: true, computeError: null });
     try {
-      const series = await scenarioApi.computeSeries(effectiveScenario);
+      const linkAssumptions = useUiStore.getState().linkAssumptions;
+      const series = await scenarioApi.computeSeries(effectiveScenario, linkAssumptions);
       const state = get();
       set({
         series,
@@ -169,4 +180,27 @@ export const useScenarioStore = create<ScenarioState>()((set, get) => ({
   selectClient: (id) => set({ selectedClientId: id }),
   selectSatellite: (id) => set({ selectedSatelliteId: id }),
   setTimeIndex: (index) => set({ timeIndex: index }),
+
+  searchCoverage: async () => {
+    const { effectiveScenario } = get();
+    if (!effectiveScenario) return;
+    set({ coverageSearching: true, coverageError: null });
+    try {
+      const candidates = await scenarioApi.searchCoverage(effectiveScenario);
+      set({ coverageCandidates: candidates, coverageSearching: false });
+    } catch (e) {
+      set({ coverageSearching: false, coverageError: e instanceof Error ? e.message : "Не удалось выполнить поиск" });
+    }
+  },
+
+  applyCoverageCandidate: (candidate) => {
+    const { baseline, overrides } = get();
+    if (!baseline) return;
+    const nextPlaneOverrides = { ...overrides.plane_overrides };
+    for (const plane of candidate.planes) {
+      nextPlaneOverrides[plane.plane_id] = { raan_deg: plane.raan_deg, phase_deg: plane.phase_deg };
+    }
+    const nextOverrides = { ...overrides, plane_overrides: nextPlaneOverrides };
+    set({ overrides: nextOverrides, effectiveScenario: buildEffectiveScenario(baseline, nextOverrides) });
+  },
 }));

@@ -9,6 +9,7 @@ import { LaunchStageControl } from "../../features/configuration-editor/LaunchSt
 import { PlanesEditor } from "../../features/configuration-editor/PlanesEditor";
 import { FailuresEditor } from "../../features/configuration-editor/FailuresEditor";
 import { ActionButtons } from "../../features/configuration-editor/ActionButtons";
+import { CoverageOptimizer } from "../../features/configuration-editor/CoverageOptimizer";
 import styles from "./Sidebar.module.css";
 
 export function Sidebar() {
@@ -70,6 +71,9 @@ export function Sidebar() {
                 satellites={effectiveScenario.design.satellites}
                 onChange={updatePlane}
               />
+            </Section>
+            <Section title="Оптимизация покрытия">
+              <CoverageOptimizer />
             </Section>
             <Section title="Отказы спутников">
               <FailuresEditor

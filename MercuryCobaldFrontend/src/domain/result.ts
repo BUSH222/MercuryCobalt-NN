@@ -1,5 +1,6 @@
 import type { Scenario } from "./scenario";
 import type { SeriesMetrics } from "./metrics";
+import type { ClientLinkSample } from "./linkMetrics";
 
 /** One routing record per (computation instant, client) pair, per export format. */
 export interface RouteRecord {
@@ -15,5 +16,7 @@ export interface ResultExport {
   routes: RouteRecord[];
   /** Additive summary, not part of the required contract but allowed by the spec. */
   metrics?: SeriesMetrics;
+  /** Additive: per-instant link-quality samples, for consumers that want more than the path. */
+  client_samples?: Record<string, ClientLinkSample[]>;
   notes?: string;
 }

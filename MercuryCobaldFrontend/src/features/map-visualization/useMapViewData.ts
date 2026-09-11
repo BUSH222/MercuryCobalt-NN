@@ -22,6 +22,7 @@ export function useMapViewData() {
   const clients = useMemo(() => scenario?.ground_sites.filter((g) => g.role === "client") ?? [], [scenario]);
   const snapshot = series?.snapshots[timeIndex] ?? null;
   const route = selectedClientId ? (series?.routes_by_client[selectedClientId]?.[timeIndex] ?? null) : null;
+  const linkSample = selectedClientId ? (series?.client_samples[selectedClientId]?.[timeIndex] ?? null) : null;
 
   const routeEdgePairs = useMemo<[string, string][]>(() => {
     if (!route || route.path.length < 2) return [];
@@ -37,6 +38,7 @@ export function useMapViewData() {
     series,
     snapshot,
     route,
+    linkSample,
     clients,
     selectedClientId,
     selectClient,

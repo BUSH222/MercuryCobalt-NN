@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Icon } from "../../components/common/Icon";
+import { Chip } from "../../components/common/Chip";
 import { ComparisonTable, type ComparisonColumn } from "../../components/ComparisonTable/ComparisonTable";
 import { useScenarioStore } from "../../store/useScenarioStore";
 import { useUiStore } from "../../store/useUiStore";
@@ -19,6 +20,7 @@ export function VariantComparison() {
   const variants = useScenarioStore((s) => s.variants);
   const removeVariant = useScenarioStore((s) => s.removeVariant);
   const timeUnit = useUiStore((s) => s.timeUnit);
+  const togglePanel = useUiStore((s) => s.togglePanel);
 
   const columns = useMemo<ComparisonColumn[]>(() => {
     const cols: ComparisonColumn[] = [];
@@ -76,11 +78,14 @@ export function VariantComparison() {
 
   return (
     <div className={styles.wrap}>
-      {variants.length < 1 && (
-        <span className={styles.hint}>
-          Сохраните как минимум два варианта конфигурации в панели слева, чтобы полноценно их сопоставить.
-        </span>
-      )}
+      <div className={styles.toolbar}>
+        {variants.length < 1 && (
+          <span className={styles.hint}>
+            Сохраните как минимум два варианта конфигурации в панели слева, чтобы полноценно их сопоставить.
+          </span>
+        )}
+        <Chip icon="chart" label="Открыть статистику" onClick={() => togglePanel("stats")} />
+      </div>
       <ComparisonTable
         columns={columns}
         clients={clients}
