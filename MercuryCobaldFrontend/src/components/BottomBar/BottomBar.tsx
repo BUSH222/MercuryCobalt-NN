@@ -1,31 +1,24 @@
 import { Chip, IconButton } from "../common/Chip";
-import type { IconName } from "../common/Icon";
-import { useUiStore, type MainView } from "../../store/useUiStore";
+import { VIEW_DEFS } from "../Layout/viewRegistry";
+import { useUiStore } from "../../store/useUiStore";
 import styles from "./BottomBar.module.css";
 
-const VIEWS: { id: MainView; label: string; icon: IconName }[] = [
-  { id: "map-equirect", label: "Карта (прямоугольная)", icon: "globe" },
-  { id: "map-polar", label: "Карта (полярная)", icon: "compass" },
-  { id: "stats", label: "Статистика", icon: "chart" },
-  { id: "compare", label: "Сравнение", icon: "compare" },
-  { id: "route", label: "Маршрут", icon: "route" },
-];
-
 export function BottomBar() {
-  const activeView = useUiStore((s) => s.activeView);
-  const setActiveView = useUiStore((s) => s.setActiveView);
+  const openPanels = useUiStore((s) => s.openPanels);
+  const togglePanel = useUiStore((s) => s.togglePanel);
   const setSettingsOpen = useUiStore((s) => s.setSettingsOpen);
 
   return (
     <div className={styles.bar}>
       <div className={styles.chips}>
-        {VIEWS.map((view) => (
+        {VIEW_DEFS.map((view) => (
           <Chip
             key={view.id}
             icon={view.icon}
             label={view.label}
-            active={activeView === view.id}
-            onClick={() => setActiveView(view.id)}
+            active={openPanels.includes(view.id)}
+            onClick={() => togglePanel(view.id)}
+            title="Показать/скрыть виджет. Несколько выбранных — размещаются рядом и делятся на изменяемые по размеру панели."
           />
         ))}
       </div>
