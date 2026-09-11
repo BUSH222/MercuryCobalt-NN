@@ -1,0 +1,90 @@
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: radial-gradient(circle at 50% 35%, #101b2c 0%, #060a12 100%);
+}
+
+.land {
+  fill: #1c2637;
+  stroke: #2a3a52;
+  stroke-width: 0.6;
+}
+
+.graticule {
+  fill: none;
+  stroke: #223049;
+  stroke-width: 0.4;
+}
+
+.parallel {
+  fill: none;
+  stroke: #33455e;
+  stroke-width: 0.6;
+  stroke-dasharray: 3 3;
+}
+
+.parallelLabel {
+  fill: var(--text-2);
+  font-size: 9px;
+  font-family: var(--font-mono);
+}
+
+.islEdge {
+  fill: none;
+  stroke: #4a5b78;
+  stroke-width: 0.6;
+  opacity: 0.45;
+}
+
+.islEdgeHidden {
+  display: none;
+}
+
+.routeEdge {
+  fill: none;
+  stroke: var(--route);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(255, 159, 69, 0.6));
+}
+
+.satellite {
+  fill: #6fa8ff;
+  stroke: #0a0e14;
+  stroke-width: 1;
+  cursor: pointer;
+}
+
+.satelliteInactive {
+  fill: #3c4759;
+}
+
+.satelliteOnRoute {
+  fill: var(--route);
+}
+
+.groundSite {
+  cursor: pointer;
+}
+
+.groundSiteRing {
+  fill: none;
+  stroke-width: 1.4;
+}
+
+.selectedRing {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 1.6;
+}
+
+.groundLabel {
+  fill: var(--text-1);
+  font-size: 9.5px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--bg-0);
+  stroke-width: 2.5px;
+  pointer-events: none;
+}

@@ -1,0 +1,79 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-1);
+}
+
+.select,
+.numberInput {
+  width: 100%;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text-0);
+}
+
+.numbers {
+  display: flex;
+  gap: 8px;
+}
+
+.numbers > div {
+  flex: 1;
+}
+
+.smallLabel {
+  font-size: 10.5px;
+  color: var(--text-2);
+  margin-bottom: 3px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  font-size: 12px;
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemId {
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.itemRange {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--text-2);
+}

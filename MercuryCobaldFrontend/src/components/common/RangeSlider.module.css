@@ -1,0 +1,49 @@
+.track {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-soft);
+}
+
+.selection {
+  position: absolute;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--route);
+  opacity: 0.7;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--route);
+  border: 2px solid var(--bg-0);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.thumb:active {
+  cursor: grabbing;
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-2);
+  margin-top: 2px;
+}

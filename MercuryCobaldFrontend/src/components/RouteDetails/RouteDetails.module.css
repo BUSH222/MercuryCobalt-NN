@@ -1,0 +1,102 @@
+.wrap {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px 0;
+}
+
+.select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+}
+
+.content {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pathList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.nodeIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+}
+
+.connector {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin-left: 15px;
+}
+
+.nodeLabel {
+  font-weight: 600;
+  color: var(--text-0);
+  font-size: 13px;
+}
+
+.nodeKind {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.reasonCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--danger-soft);
+  border: 1px solid rgba(239, 107, 107, 0.4);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.note {
+  font-size: 11.5px;
+  color: var(--text-2);
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+}
+
+.hopBadge {
+  align-self: flex-start;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
