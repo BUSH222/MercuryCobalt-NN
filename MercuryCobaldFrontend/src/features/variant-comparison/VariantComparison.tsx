@@ -5,6 +5,7 @@ import { ComparisonTable, type ComparisonColumn } from "../../components/Compari
 import { useScenarioStore } from "../../store/useScenarioStore";
 import { useUiStore } from "../../store/useUiStore";
 import { summarizeVariant } from "../../utils/variantDiff";
+import { classifyScenarioConditions } from "../../utils/scenarioClassification";
 import type { ClientAvailabilityMetrics, GroundSite, SeriesMetrics } from "../../domain";
 import styles from "./VariantComparison.module.css";
 
@@ -36,6 +37,7 @@ export function VariantComparison() {
           effective_scenario: effectiveScenario,
           metrics: series.metrics,
         }),
+        conditionFlags: classifyScenarioConditions(effectiveScenario),
         metricsByClient: metricsMap(series.metrics),
         removable: false,
       });
@@ -45,6 +47,7 @@ export function VariantComparison() {
         id: variant.id,
         name: variant.name,
         summaryLines: baseline ? summarizeVariant(baseline, variant) : [],
+        conditionFlags: classifyScenarioConditions(variant.effective_scenario),
         metricsByClient: metricsMap(variant.metrics),
         removable: true,
       });

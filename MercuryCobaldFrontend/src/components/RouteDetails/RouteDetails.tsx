@@ -46,7 +46,8 @@ export function RouteDetails() {
         <div className={styles.note}>
           Алгоритм: поиск в ширину (BFS) по графу активных ISL-связей — кратчайший по числу переходов маршрут от
           клиентского пункта до ближайшего доступного шлюза. Маршрут пересчитывается на каждый отсчёт времени по
-          текущему составу связей.
+          текущему составу связей. Если валидных маршрутов несколько, показан один из них — эталонного маршрута не
+          существует, важна лишь физическая допустимость показанного пути в данный момент.
         </div>
 
         {linkSample && (
@@ -87,8 +88,11 @@ export function RouteDetails() {
 
         {!route || route.path.length === 0 ? (
           <div className={styles.reasonCard}>
-            <Icon name="warning" />
-            <span>{route?.reason ? NO_ROUTE_REASON_LABEL[route.reason] : "Нет данных о маршруте"}</span>
+            <Icon name="info" />
+            <span>
+              {route?.reason ? NO_ROUTE_REASON_LABEL[route.reason] : "Нет данных о маршруте"} — это штатное состояние
+              сети в данный момент, а не ошибка сервиса.
+            </span>
           </div>
         ) : (
           <>

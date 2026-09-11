@@ -63,3 +63,12 @@
   background: var(--accent-strong);
   pointer-events: none;
 }
+
+.routeChangeTick {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 55%;
+  background: var(--route);
+  pointer-events: none;
+}

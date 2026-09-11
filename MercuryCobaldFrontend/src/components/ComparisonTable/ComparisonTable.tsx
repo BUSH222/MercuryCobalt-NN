@@ -2,12 +2,14 @@ import { Fragment } from "react";
 import type { ClientAvailabilityMetrics, GroundSite } from "../../domain";
 import { IconButton } from "../common/Chip";
 import { formatDuration, type TimeDisplayUnit } from "../../utils/time";
+import type { ScenarioConditionFlags } from "../../utils/scenarioClassification";
 import styles from "./ComparisonTable.module.css";
 
 export interface ComparisonColumn {
   id: string;
   name: string;
   summaryLines: string[];
+  conditionFlags: ScenarioConditionFlags;
   metricsByClient: Record<string, ClientAvailabilityMetrics>;
   removable: boolean;
 }
@@ -36,6 +38,9 @@ export function ComparisonTable({ columns, clients, targetAvailability, timeUnit
                     <span>{col.name}</span>
                     {col.removable && <IconButton icon="trash" title="Удалить вариант" onClick={() => onRemove(col.id)} />}
                   </div>
+                  <span className={col.conditionFlags.isNominal ? styles.conditionNominal : styles.conditionStress}>
+                    {col.conditionFlags.isNominal ? "Штатный вариант" : col.conditionFlags.labels.join(" · ")}
+                  </span>
                   <div className={styles.diffLines}>
                     {col.summaryLines.map((line, i) => (
                       <span key={i}>{line}</span>
@@ -61,10 +66,11 @@ export function ComparisonTable({ columns, clients, targetAvailability, timeUnit
               <tr key={`${client.id}-availability`}>
                 <td className={styles.rowLabelCell}>Доступность связи</td>
                 {columns.map((col) => {
-                  const pct = (col.metricsByClient[client.id]?.availability_fraction ?? 0) * 100;
+                  const m = col.metricsByClient[client.id];
+                  const pct = (m?.availability_fraction ?? 0) * 100;
                   return (
                     <td key={col.id} className={pct >= targetPct ? styles.pass : styles.fail}>
-                      {pct.toFixed(1)}%
+                      {pct.toFixed(1)}%{m ? ` (${m.available_tick_count}/${m.total_tick_count})` : ""}
                     </td>
                   );
                 })}

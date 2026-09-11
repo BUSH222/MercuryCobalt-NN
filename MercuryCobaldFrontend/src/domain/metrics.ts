@@ -23,6 +23,9 @@ export interface ClientAvailabilityMetrics {
   availability_fraction: number;
   /** availability_fraction checked against the scenario's own target_availability. */
   meets_target_availability: boolean;
+  /** Raw tick counts behind availability_fraction (e.g. 648 of 720), for a more legible readout than a bare percentage. */
+  available_tick_count: number;
+  total_tick_count: number;
   max_outage_s: number;
   /** Sum of every outage run's duration, not just the longest one. */
   total_downtime_s: number;

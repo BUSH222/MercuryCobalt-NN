@@ -55,6 +55,11 @@
   gap: 10px;
 }
 
+.ganttLegend {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
 .sectionTitle {
   font-size: 12px;
   font-weight: 700;

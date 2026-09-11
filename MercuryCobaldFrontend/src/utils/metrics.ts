@@ -70,6 +70,8 @@ export function computeClientMetrics(
     visibility_fraction: total > 0 ? visibleCount / total : 0,
     availability_fraction: availabilityFraction,
     meets_target_availability: availabilityFraction >= env.target_availability,
+    available_tick_count: availableCount,
+    total_tick_count: total,
     max_outage_s: maxOutageS,
     total_downtime_s: totalDowntimeS,
     outage_runs: outageRuns,

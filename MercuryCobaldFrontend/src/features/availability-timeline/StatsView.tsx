@@ -68,7 +68,7 @@ export function StatsView() {
               <div className={styles.metricRow}>
                 <span>Доступность связи</span>
                 <span className={`${styles.metricValue} ${passes ? styles.pass : styles.fail}`}>
-                  {availPct.toFixed(1)}% (цель {targetPct.toFixed(0)}%)
+                  {availPct.toFixed(1)}% ({m.available_tick_count}/{m.total_tick_count} тиков, цель {targetPct.toFixed(0)}%)
                 </span>
               </div>
               <div className={styles.metricRow}>
@@ -159,6 +159,10 @@ export function StatsView() {
           stepCount={series.t_grid_s.length}
           onSeek={setTimeIndex}
         />
+        <span className={styles.ganttLegend}>
+          Клик по красному сегменту переходит к началу перерыва. Оранжевая отметка — маршрут сменился, хотя связь не
+          прерывалась (например, отказал спутник текущего маршрута).
+        </span>
       </div>
 
       <TimeScrubber tGrid={series.t_grid_s} timeIndex={timeIndex} onChange={setTimeIndex} timeUnit={timeUnit} />

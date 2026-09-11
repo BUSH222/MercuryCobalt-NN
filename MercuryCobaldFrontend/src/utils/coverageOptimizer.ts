@@ -175,17 +175,31 @@ export async function searchCoverageConfigurations(
     const perClientAvailability: Record<string, number> = {};
     let worst = Infinity;
     let sum = 0;
+    // Availability is the primary ranking criterion (worst-case per the scenario's own
+    // acceptance rule); max outage duration is tracked too so it can be shown as an
+    // auxiliary, non-decisive figure alongside it — the two are surfaced separately
+    // rather than folded into one score, per the same principle used in "Сравнение".
+    let worstMaxOutageSteps = 0;
     for (const client of clients) {
       let connectedCount = 0;
+      let currentOutageSteps = 0;
+      let longestOutageSteps = 0;
       for (const t of fullGrid) {
         const snap = computeSnapshot(candidate, t);
         const route = computeRoute(candidate, snap, client);
-        if (route.path.length > 0) connectedCount++;
+        if (route.path.length > 0) {
+          connectedCount++;
+          currentOutageSteps = 0;
+        } else {
+          currentOutageSteps++;
+          longestOutageSteps = Math.max(longestOutageSteps, currentOutageSteps);
+        }
       }
       const frac = fullGrid.length > 0 ? connectedCount / fullGrid.length : 0;
       perClientAvailability[client.id] = frac;
       worst = Math.min(worst, frac);
       sum += frac;
+      worstMaxOutageSteps = Math.max(worstMaxOutageSteps, longestOutageSteps);
     }
     refined.push({
       id: generateId("coverage"),
@@ -199,6 +213,7 @@ export async function searchCoverageConfigurations(
       worst_availability_fraction: worst,
       mean_availability_fraction: sum / clients.length,
       per_client_availability_fraction: perClientAvailability,
+      worst_max_outage_s: worstMaxOutageSteps * baseline.environment.step_s,
     });
     await yieldToEventLoop();
   }

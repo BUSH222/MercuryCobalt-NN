@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Button } from "../../components/common/Button";
 import { useScenarioStore } from "../../store/useScenarioStore";
+import { useUiStore } from "../../store/useUiStore";
+import { formatDuration } from "../../utils/time";
 import styles from "./CoverageOptimizer.module.css";
 
 function normalizeDeg(deg: number): number {
@@ -24,6 +26,7 @@ export function CoverageOptimizer() {
   const searchCoverage = useScenarioStore((s) => s.searchCoverage);
   const applyCoverageCandidate = useScenarioStore((s) => s.applyCoverageCandidate);
   const baseline = useScenarioStore((s) => s.baseline);
+  const timeUnit = useUiStore((s) => s.timeUnit);
 
   const baselineSpacing = useMemo(() => {
     if (!baseline || baseline.design.planes.length < 2) return null;
@@ -69,6 +72,9 @@ export function CoverageOptimizer() {
                 </span>
                 <span>
                   Средняя: <span className={styles.itemMetricValue}>{(c.mean_availability_fraction * 100).toFixed(1)}%</span>
+                </span>
+                <span>
+                  Худший перерыв (справочно): <span className={styles.itemMetricValue}>{formatDuration(c.worst_max_outage_s, timeUnit)}</span>
                 </span>
               </div>
             </div>

@@ -66,3 +66,23 @@
 .fail {
   color: var(--danger);
 }
+
+.conditionNominal,
+.conditionStress {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: normal;
+}
+
+.conditionNominal {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.conditionStress {
+  background: rgba(232, 185, 79, 0.18);
+  color: var(--warning);
+}

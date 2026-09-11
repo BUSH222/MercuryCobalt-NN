@@ -22,4 +22,6 @@ export interface CoverageCandidate {
   worst_availability_fraction: number;
   mean_availability_fraction: number;
   per_client_availability_fraction: Record<string, number>;
+  /** Auxiliary, non-decisive figure shown alongside availability — the worst single outage across clients. */
+  worst_max_outage_s: number;
 }

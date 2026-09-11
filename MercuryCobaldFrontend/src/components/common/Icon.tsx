@@ -14,6 +14,7 @@ export type IconName =
   | "dish"
   | "gateway"
   | "warning"
+  | "info"
   | "check"
   | "close"
   | "plus"
@@ -42,6 +43,7 @@ const PATHS: Record<IconName, string> = {
   dish: "M4 15a8 8 0 0 1 13-6.2M12 15v6m-3 0h6M4 15l8-8 4 4-8 8-4-4Z",
   gateway: "M4 20h16M6 20V10l6-6 6 6v10M10 20v-6h4v6",
   warning: "M12 4 2 20h20L12 4Zm0 6v4m0 3h.01",
+  info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-5v-5m0-3h.01",
   check: "M5 13l4 4L19 7",
   close: "M6 6l12 12M18 6 6 18",
   plus: "M12 5v14M5 12h14",
