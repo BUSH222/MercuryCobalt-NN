@@ -1,51 +1,36 @@
 /**
- * Turns the Sun model's day/night test into something `geoPath` can draw.
- * Deliberately NOT an analytic terminator curve clipped to the map bounds —
- * in the equirectangular projection that curve tears at the ±180° seam,
- * which would mean separate antimeridian-splitting logic per projection for
- * no real payoff at map scale. Instead this samples a coarse lat/lon grid and
- * emits one small quad per night-side cell as a single MultiPolygon; both
- * projections just feed it through their own `geoPath` like the land and
- * graticule layers, no per-projection code needed.
+ * Turns the Sun model's day/night split into something `geoPath` can draw:
+ * the night hemisphere is exactly the spherical cap of angular radius 90°
+ * centred on the antisolar point, so `geoCircle` produces it directly as one
+ * well-wound polygon. An earlier version approximated it instead with a
+ * coarse lat/lon grid of ~8000 individual quad cells; that rendered fine
+ * under the equirectangular projection's antimeridian clipping, but under
+ * the polar view's `clipAngle` circle-clipping the many disjoint tiny rings
+ * broke d3-geo's clip-and-stitch logic — the projected "night" area came out
+ * at roughly 27x the visible disk's own area instead of a plausible
+ * fraction of it, i.e. badly garbled fill, not just a jagged edge. A single
+ * `geoCircle` polygon is the standard technique for a day/night terminator
+ * and is exactly the kind of spherical shape both clip strategies are built
+ * to handle correctly.
  */
-import type { Feature, MultiPolygon, Position } from "geojson";
+import { geoCircle } from "d3-geo";
+import type { Feature, Polygon } from "geojson";
 import type { Vec3 } from "./geometry";
-import { isNight } from "./sun";
 
-const DEFAULT_STEP_DEG = 2;
-
-/**
- * d3-geo/GeoJSON spherical rings wind clockwise-as-plotted in lon/lat
- * (right-hand rule on the sphere, opposite of flat-plane CCW intuition) —
- * lon-lo/lat-lo, up to lat-hi, across to lon-hi, back down. Getting this
- * backwards doesn't just mirror the quad, it flips it inside-out: d3-geo
- * then renders "the whole sphere except this quad" instead of the quad
- * itself, which at a few hundred quads looks like one solid fill.
- */
-function cellRing(lonC: number, latC: number, halfStep: number): Position[] {
-  const lonLo = lonC - halfStep;
-  const lonHi = lonC + halfStep;
-  const latLo = Math.max(-90, latC - halfStep);
-  const latHi = Math.min(90, latC + halfStep);
-  return [
-    [lonLo, latLo],
-    [lonLo, latHi],
-    [lonHi, latHi],
-    [lonHi, latLo],
-    [lonLo, latLo],
-  ];
+function lonLatOfUnitVector(v: Vec3): [number, number] {
+  const lonDeg = (Math.atan2(v.y, v.x) * 180) / Math.PI;
+  const latDeg = (Math.asin(Math.max(-1, Math.min(1, v.z))) * 180) / Math.PI;
+  return [lonDeg, latDeg];
 }
 
-/** Night-side shading for time t_s, given the Sun's Earth-fixed direction at that same instant. */
-export function buildNightFeature(sunEcef: Vec3, stepDeg: number = DEFAULT_STEP_DEG): Feature<MultiPolygon> {
-  const half = stepDeg / 2;
-  const coordinates: Position[][][] = [];
-  for (let latC = -90 + half; latC < 90; latC += stepDeg) {
-    for (let lonC = -180 + half; lonC < 180; lonC += stepDeg) {
-      if (isNight(sunEcef, latC, lonC)) {
-        coordinates.push([cellRing(lonC, latC, half)]);
-      }
-    }
-  }
-  return { type: "Feature", properties: {}, geometry: { type: "MultiPolygon", coordinates } };
+/** Night-side shading for the instant `sunEcef` (the Sun's Earth-fixed direction) represents. */
+export function buildNightFeature(sunEcef: Vec3): Feature<Polygon> {
+  const [subsolarLon, subsolarLat] = lonLatOfUnitVector(sunEcef);
+  const antisolarLon = subsolarLon > 0 ? subsolarLon - 180 : subsolarLon + 180;
+  const antisolarLat = -subsolarLat;
+  return {
+    type: "Feature",
+    properties: {},
+    geometry: geoCircle().center([antisolarLon, antisolarLat]).radius(90)(),
+  };
 }

@@ -3,7 +3,6 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { CanvasTexture, Color, InstancedMesh, Object3D, Quaternion, SRGBColorSpace, Vector3, type SpriteMaterial } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { Scenario, Snapshot } from "../../domain";
-import type { Vec3 } from "../../utils/geometry";
 import type { MapClickTarget } from "./MapCanvas";
 import { coverageAngle, coverageRing, createEarthTexture, EARTH_KM, globePosition, sitePosition } from "./globeGeometry";
 
@@ -18,8 +17,6 @@ interface Props {
   selectedNode: MapClickTarget | null;
   onSelect: (target: MapClickTarget) => void;
   resetKey: number;
-  /** Sun's Earth-fixed direction at the displayed instant, for the globe texture's night-side shading. */
-  sunEcef: Vec3 | null;
 }
 
 function Controls({ resetKey }: { resetKey: number }) {
@@ -54,13 +51,13 @@ function Controls({ resetKey }: { resetKey: number }) {
   return null;
 }
 
-function Earth({ sunEcef }: { sunEcef: Vec3 | null }) {
+function Earth() {
   const { gl } = useThree();
   // Effect lifecycle also handles StrictMode's setup/cleanup cycle.
   const material = useRef<import("three").MeshBasicMaterial>(null);
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
-    const texture = createEarthTexture(sunEcef);
+    const texture = createEarthTexture();
     texture.anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy());
     if (material.current) {
       material.current.map = texture;
@@ -68,7 +65,7 @@ function Earth({ sunEcef }: { sunEcef: Vec3 | null }) {
     }
     invalidate();
     return () => texture.dispose();
-  }, [gl, invalidate, sunEcef]);
+  }, [gl, invalidate]);
   return (
     <mesh onClick={(e) => e.stopPropagation()}>
       <sphereGeometry args={[1, 96, 64]} />
@@ -208,7 +205,7 @@ export function GlobeScene(props: Props) {
   return (
     <>
       <Controls resetKey={props.resetKey} />
-      <Earth sunEcef={props.sunEcef} />
+      <Earth />
       <Segments points={lines.footprints} color="#6fa8ff" opacity={0.3} />
       <Segments points={lines.clients} color="#4fd1c5" opacity={0.65} />
       <Segments points={lines.gateways} color="#ff9f45" opacity={0.65} />

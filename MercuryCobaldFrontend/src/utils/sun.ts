@@ -70,12 +70,6 @@ export function sunDirectionEcefAt(uEci: Vec3, earthAngle0Deg: number, tS: numbe
   return eciToEcef(uEci, earthAngle0Deg, tS);
 }
 
-/** Whether a surface point (lat/lon, degrees) is on the night side, given the Sun's Earth-fixed direction at that instant. */
-export function isNight(sunEcef: Vec3, latDeg: number, lonDeg: number): boolean {
-  const p = unitVectorFromLatLon(latDeg, lonDeg);
-  return sunEcef.x * p.x + sunEcef.y * p.y + sunEcef.z * p.z < 0;
-}
-
 /**
  * Whether a satellite at Earth-fixed position `satEcef` (km) sits in Earth's
  * shadow, given the Sun's Earth-fixed direction at that same instant.

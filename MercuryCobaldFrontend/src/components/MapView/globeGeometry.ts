@@ -1,9 +1,7 @@
 import { geoEquirectangular, geoGraticule10, geoPath } from "d3-geo";
 import { CanvasTexture, SRGBColorSpace, Vector3 } from "three";
-import type { Vec3 } from "../../utils/geometry";
 import { groundSiteEcef } from "../../utils/geometry";
 import { LAND_FEATURES } from "../../utils/mapProjections";
-import { buildNightFeature } from "../../utils/terminator";
 
 export const EARTH_KM = 6371;
 
@@ -37,13 +35,13 @@ export function coverageRing(center: Vector3, angle: number, radius: number): nu
 }
 
 /**
- * `sunEcef`, when given, bakes the same night-side shading the 2D map draws
- * (`utils/terminator.ts`'s `buildNightFeature`) directly into this texture,
- * via the same `path` generator already used for the land/graticule layers —
- * land and night share one lon/lat -> canvas-pixel mapping, so they can't
- * drift out of alignment with each other.
+ * Deliberately no night-side shading here (unlike the 2D map): baking it into
+ * this texture meant rebuilding and re-uploading a fresh 2048x1024 canvas
+ * texture to the GPU on every timeline tick (the Sun's direction changes each
+ * tick), which was heavy enough to visibly stutter the globe while scrubbing.
+ * The texture below has no time-varying input, so it's now built once.
  */
-export function createEarthTexture(sunEcef?: Vec3 | null): CanvasTexture {
+export function createEarthTexture(): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 2048;
   canvas.height = 1024;
@@ -65,12 +63,6 @@ export function createEarthTexture(sunEcef?: Vec3 | null): CanvasTexture {
   context.strokeStyle = "#25364c";
   context.lineWidth = 0.65;
   context.stroke();
-  if (sunEcef) {
-    context.beginPath();
-    path(buildNightFeature(sunEcef));
-    context.fillStyle = "rgba(0, 4, 12, 0.55)";
-    context.fill();
-  }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;

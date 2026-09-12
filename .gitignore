@@ -147,3 +147,5 @@ cython_debug/
 
 # uv specific
 .uv/
+
+.node_modules/
