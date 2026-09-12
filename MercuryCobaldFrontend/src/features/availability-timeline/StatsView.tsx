@@ -3,7 +3,8 @@ import { Icon } from "../../components/common/Icon";
 import { Chip } from "../../components/common/Chip";
 import { TimeScrubber } from "../../components/Timeline/TimeScrubber";
 import { AvailabilityGantt } from "../../components/Timeline/AvailabilityGantt";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setTimeIndex as setTimeIndexAction } from "../../store/scenarioSlice";
 import { useUiStore } from "../../store/useUiStore";
 import { formatDuration } from "../../utils/time";
 import styles from "./StatsView.module.css";
@@ -12,10 +13,13 @@ import styles from "./StatsView.module.css";
 const TOP_SATELLITES_SHOWN = 5;
 
 export function StatsView() {
-  const scenario = useScenarioStore((s) => s.effectiveScenario);
-  const series = useScenarioStore((s) => s.series);
-  const timeIndex = useScenarioStore((s) => s.timeIndex);
-  const setTimeIndex = useScenarioStore((s) => s.setTimeIndex);
+  const dispatch = useAppDispatch();
+  const scenario = useAppSelector((s) => s.scenario.effectiveScenario);
+  const series = useAppSelector((s) => s.scenario.series);
+  const timeIndex = useAppSelector((s) => s.scenario.timeIndex);
+  const setTimeIndex = (index: number): void => {
+    dispatch(setTimeIndexAction(index));
+  };
   const timeUnit = useUiStore((s) => s.timeUnit);
   const togglePanel = useUiStore((s) => s.togglePanel);
 

@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { Icon } from "../../components/common/Icon";
 import { Chip } from "../../components/common/Chip";
 import { ComparisonTable, type ComparisonColumn } from "../../components/ComparisonTable/ComparisonTable";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { removeVariant as removeVariantAction } from "../../store/scenarioSlice";
 import { useUiStore } from "../../store/useUiStore";
 import { summarizeVariant } from "../../utils/variantDiff";
 import { classifyScenarioConditions } from "../../utils/scenarioClassification";
@@ -14,12 +15,15 @@ function metricsMap(metrics: SeriesMetrics): Record<string, ClientAvailabilityMe
 }
 
 export function VariantComparison() {
-  const baseline = useScenarioStore((s) => s.baseline);
-  const effectiveScenario = useScenarioStore((s) => s.effectiveScenario);
-  const overrides = useScenarioStore((s) => s.overrides);
-  const series = useScenarioStore((s) => s.series);
-  const variants = useScenarioStore((s) => s.variants);
-  const removeVariant = useScenarioStore((s) => s.removeVariant);
+  const dispatch = useAppDispatch();
+  const baseline = useAppSelector((s) => s.scenario.baseline);
+  const effectiveScenario = useAppSelector((s) => s.scenario.effectiveScenario);
+  const overrides = useAppSelector((s) => s.scenario.overrides);
+  const series = useAppSelector((s) => s.scenario.series);
+  const variants = useAppSelector((s) => s.scenario.variants);
+  const removeVariant = (id: string): void => {
+    dispatch(removeVariantAction(id));
+  };
   const timeUnit = useUiStore((s) => s.timeUnit);
   const togglePanel = useUiStore((s) => s.togglePanel);
 

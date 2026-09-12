@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppSelector } from "../../store/hooks";
 import { createPolarProjection } from "../../utils/mapProjections";
 import { MapViewFrame } from "./MapViewFrame";
 
@@ -7,7 +7,7 @@ const SIZE = 760;
 const DEFAULT_MIN_LAT = 55;
 
 export function PolarMap() {
-  const groundSites = useScenarioStore((s) => s.effectiveScenario?.ground_sites);
+  const groundSites = useAppSelector((s) => s.scenario.effectiveScenario?.ground_sites);
 
   const minLatDeg = useMemo(() => {
     if (!groundSites || groundSites.length === 0) return DEFAULT_MIN_LAT;

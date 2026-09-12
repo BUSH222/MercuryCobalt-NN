@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { Button } from "../../components/common/Button";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { applyCoverageCandidate as applyCoverageCandidateAction, searchCoverage } from "../../store/scenarioSlice";
 import { useUiStore } from "../../store/useUiStore";
 import { formatDuration } from "../../utils/time";
+import type { CoverageCandidate } from "../../domain";
 import styles from "./CoverageOptimizer.module.css";
 
 function normalizeDeg(deg: number): number {
@@ -20,13 +22,15 @@ function normalizeDeg(deg: number): number {
  * flow, nothing here writes a result until "Применить" is clicked.
  */
 export function CoverageOptimizer() {
-  const searching = useScenarioStore((s) => s.coverageSearching);
-  const candidates = useScenarioStore((s) => s.coverageCandidates);
-  const error = useScenarioStore((s) => s.coverageError);
-  const searchCoverage = useScenarioStore((s) => s.searchCoverage);
-  const applyCoverageCandidate = useScenarioStore((s) => s.applyCoverageCandidate);
-  const baseline = useScenarioStore((s) => s.baseline);
+  const dispatch = useAppDispatch();
+  const searching = useAppSelector((s) => s.scenario.coverageSearching);
+  const candidates = useAppSelector((s) => s.scenario.coverageCandidates);
+  const error = useAppSelector((s) => s.scenario.coverageError);
+  const baseline = useAppSelector((s) => s.scenario.baseline);
   const timeUnit = useUiStore((s) => s.timeUnit);
+  const applyCoverageCandidate = (candidate: CoverageCandidate): void => {
+    dispatch(applyCoverageCandidateAction(candidate));
+  };
 
   const baselineSpacing = useMemo(() => {
     if (!baseline || baseline.design.planes.length < 2) return null;
@@ -44,7 +48,7 @@ export function CoverageOptimizer() {
         доступность связи в наихудшем по клиентам случае. Сначала дешёвая оценка по видимости, затем точный пересчёт
         маршрутов для лучших кандидатов.
       </span>
-      <Button icon="compass" disabled={searching} onClick={() => void searchCoverage()}>
+      <Button icon="compass" disabled={searching} onClick={() => void dispatch(searchCoverage())}>
         {searching ? "Идёт поиск…" : "Подобрать конфигурацию"}
       </Button>
       {error && <span className={styles.error}>{error}</span>}

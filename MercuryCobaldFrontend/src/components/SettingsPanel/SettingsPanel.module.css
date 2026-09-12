@@ -22,6 +22,12 @@
   gap: 8px;
 }
 
+.exportList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .assumptionRow {
   display: flex;
   align-items: center;

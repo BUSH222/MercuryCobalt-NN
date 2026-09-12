@@ -3,14 +3,15 @@ import type { DragEvent } from "react";
 import { Icon } from "../../components/common/Icon";
 import { Button } from "../../components/common/Button";
 import { ErrorList } from "../../components/common/ErrorList";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppDispatch } from "../../store/hooks";
+import { loadScenario } from "../../store/scenarioSlice";
 import { scenarioApi } from "../../services/scenarioApi";
 import type { ValidationError } from "../../utils/validation";
 import { SAMPLE_SCENARIOS } from "../../mocks/scenarios";
 import styles from "./ScenarioLoader.module.css";
 
 export function ScenarioLoader() {
-  const loadScenario = useScenarioStore((s) => s.loadScenario);
+  const dispatch = useAppDispatch();
   const [dragging, setDragging] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const [errors, setErrors] = useState<ValidationError[] | null>(null);
@@ -27,7 +28,7 @@ export function ScenarioLoader() {
       setErrors(result.errors);
       return;
     }
-    await loadScenario(result.scenario);
+    await dispatch(loadScenario(result.scenario));
   }
 
   async function handleFiles(files: FileList | null): Promise<void> {

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { useScenarioStore } from "../../store/useScenarioStore";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { selectClient as selectClientAction, setTimeIndex as setTimeIndexAction } from "../../store/scenarioSlice";
 import { useUiStore } from "../../store/useUiStore";
 
 /**
@@ -9,15 +10,21 @@ import { useUiStore } from "../../store/useUiStore";
  * never duplicate the derivation logic (only the projection differs between them).
  */
 export function useMapViewData() {
-  const scenario = useScenarioStore((s) => s.effectiveScenario);
-  const series = useScenarioStore((s) => s.series);
-  const timeIndex = useScenarioStore((s) => s.timeIndex);
-  const setTimeIndex = useScenarioStore((s) => s.setTimeIndex);
-  const selectedClientId = useScenarioStore((s) => s.selectedClientId);
-  const selectClient = useScenarioStore((s) => s.selectClient);
+  const dispatch = useAppDispatch();
+  const scenario = useAppSelector((s) => s.scenario.effectiveScenario);
+  const series = useAppSelector((s) => s.scenario.series);
+  const timeIndex = useAppSelector((s) => s.scenario.timeIndex);
+  const selectedClientId = useAppSelector((s) => s.scenario.selectedClientId);
   const showAllIsl = useUiStore((s) => s.showAllIsl);
   const setShowAllIsl = useUiStore((s) => s.setShowAllIsl);
   const timeUnit = useUiStore((s) => s.timeUnit);
+
+  const setTimeIndex = (index: number): void => {
+    dispatch(setTimeIndexAction(index));
+  };
+  const selectClient = (id: string | null): void => {
+    dispatch(selectClientAction(id));
+  };
 
   const clients = useMemo(() => scenario?.ground_sites.filter((g) => g.role === "client") ?? [], [scenario]);
   const snapshot = series?.snapshots[timeIndex] ?? null;
