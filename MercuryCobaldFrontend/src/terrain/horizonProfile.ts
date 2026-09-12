@@ -26,7 +26,27 @@ const ELEVATION_STEP_DEG = 1;
 /** Nominal height (m) of the observation point above the terrain surface — avoids the ray's origin sitting exactly on the mesh it's testing against. */
 const OBSERVER_HEIGHT_M = 2;
 
-function bilinearElevationM(grid: TerrainGrid, latDeg: number, lonDeg: number): number {
+/**
+ * Elevation directly under the station, interpolated the same way the raycast
+ * mesh itself is triangulated below (`indices.push(v00, v10, v01, v01, v10,
+ * v11)` — a fixed v01–v10 diagonal, not a smooth bilinear blend of all four
+ * corners). This has to match exactly: `stationElevationM` is subtracted from
+ * every vertex to place the station at local Z ≈ 0, and the observer origin
+ * is offset from *that* by a fixed `OBSERVER_HEIGHT_M`. A true bilinear
+ * estimate agrees with this only when the four corners are coplanar: on real
+ * terrain with any local ridge/saddle (the `(e00+e11) - (e01+e10)` twist
+ * term), the two surfaces disagree right under the station. On mountainous
+ * ground that mismatch routinely exceeds `OBSERVER_HEIGHT_M`, which plants
+ * the ray origin *inside* the mesh's own home triangle — every cast ray,
+ * including near-zenith ones, immediately self-intersects that triangle, so
+ * `computeHorizonProfile` reports the station as walled in on all sides
+ * (observed: every azimuth blocked up to `ELEVATION_MAX_DEG`, i.e. only
+ * satellites passing almost exactly overhead ever clear the "horizon").
+ * Using the mesh's own triangle plane instead guarantees the origin sits
+ * exactly `OBSERVER_HEIGHT_M` above the ground right beneath it, regardless
+ * of local curvature.
+ */
+function meshElevationM(grid: TerrainGrid, latDeg: number, lonDeg: number): number {
   const { bounds, rows, cols, elevations_m } = grid;
   // rows/cols are always >= 2 (see MIN_GRID_SIZE in terrain_api/terrain.py), so rows-2/cols-2 are safe clamp bounds.
   const rowF = ((bounds.north_deg - latDeg) / (bounds.north_deg - bounds.south_deg)) * (rows - 1);
@@ -41,14 +61,19 @@ function bilinearElevationM(grid: TerrainGrid, latDeg: number, lonDeg: number): 
   const e01 = elevations_m[row0]![col1]!;
   const e10 = elevations_m[row1]![col0]!;
   const e11 = elevations_m[row1]![col1]!;
-  const top = e00 + (e01 - e00) * fc;
-  const bottom = e10 + (e11 - e10) * fc;
-  return top + (bottom - top) * fr;
+  if (fr + fc <= 1) {
+    // Triangle (v00, v10, v01).
+    return e00 + fr * (e10 - e00) + fc * (e01 - e00);
+  }
+  // Triangle (v01, v10, v11).
+  const fr2 = 1 - fr;
+  const fc2 = 1 - fc;
+  return e11 + fr2 * (e01 - e11) + fc2 * (e10 - e11);
 }
 
 function buildTerrainMesh(grid: TerrainGrid): { mesh: THREE.Mesh; stationElevationM: number } {
   const { bounds, rows, cols, elevations_m, lat_deg, lon_deg } = grid;
-  const stationElevationM = bilinearElevationM(grid, lat_deg, lon_deg);
+  const stationElevationM = meshElevationM(grid, lat_deg, lon_deg);
   const metersPerDegLon = METERS_PER_DEG_LAT * Math.cos((lat_deg * Math.PI) / 180);
 
   const positions = new Float32Array(rows * cols * 3);
