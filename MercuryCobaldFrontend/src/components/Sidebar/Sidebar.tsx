@@ -47,7 +47,7 @@ export function Sidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.header}>
         <span className={styles.brand}>
-          <Icon name="satellite" size={18} />
+          <Icon name="brand" size={18} />
           Конфигурация группировки
         </span>
         <IconButton icon="chevron-left" title="Свернуть панель" onClick={toggleSidebar} />

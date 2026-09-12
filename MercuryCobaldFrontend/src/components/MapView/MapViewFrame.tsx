@@ -69,7 +69,7 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
             ))}
           </select>
           <Chip
-            icon="satellite"
+            icon="isl"
             label="Показать все ISL"
             active={showAllIsl}
             onClick={() => setShowAllIsl(!showAllIsl)}
