@@ -94,7 +94,7 @@ export function ScenarioLoader() {
             key={sample.label}
             type="button"
             className={styles.sampleButton}
-            onClick={() => void submitText(JSON.stringify(sample.build()))}
+            onClick={() => void submitText(JSON.stringify(sample.scenario))}
           >
             <span>{sample.label}</span>
             <Icon name="chevron-right" />
