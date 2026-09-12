@@ -101,6 +101,32 @@ export function groundSiteEcef(latDeg: number, lonDeg: number): Vec3 {
   };
 }
 
+// WGS84 ellipsoid parameters, for "Advanced (terrain, WGS84)" mode only.
+const WGS84_SEMI_MAJOR_AXIS_KM = 6378.137;
+const WGS84_FLATTENING = 1 / 298.257223563;
+const WGS84_ECCENTRICITY_SQ = WGS84_FLATTENING * (2 - WGS84_FLATTENING);
+
+/**
+ * Earth-fixed position of a ground site on the WGS84 reference ellipsoid
+ * (geodetic lat/lon in degrees, height above the ellipsoid in km — pass the
+ * fetched terrain elevation at that point, or 0 for the bare ellipsoid
+ * surface). Standard geodetic-to-ECEF conversion, distinct from
+ * `groundSiteEcef`'s spherical approximation above: basic mode keeps using
+ * the sphere unchanged, advanced mode (terrain/horizon visibility) uses this
+ * instead — the two are never mixed for the same computation.
+ */
+export function groundSiteEcefWgs84(latDeg: number, lonDeg: number, heightKm = 0): Vec3 {
+  const phi = deg2rad(latDeg);
+  const lambda = deg2rad(lonDeg);
+  const sinPhi = Math.sin(phi);
+  const primeVerticalRadius = WGS84_SEMI_MAJOR_AXIS_KM / Math.sqrt(1 - WGS84_ECCENTRICITY_SQ * sinPhi * sinPhi);
+  return {
+    x: (primeVerticalRadius + heightKm) * Math.cos(phi) * Math.cos(lambda),
+    y: (primeVerticalRadius + heightKm) * Math.cos(phi) * Math.sin(lambda),
+    z: (primeVerticalRadius * (1 - WGS84_ECCENTRICITY_SQ) + heightKm) * sinPhi,
+  };
+}
+
 /** Elevation angle (degrees) of a satellite as seen from a ground site position. */
 export function elevationDeg(satEcef: Vec3, groundEcef: Vec3): number {
   const diff = vsub(satEcef, groundEcef);
@@ -108,6 +134,43 @@ export function elevationDeg(satEcef: Vec3, groundEcef: Vec3): number {
   if (diffNorm === 0) return 90;
   const value = vdot(diff, groundEcef) / (diffNorm * EARTH_RADIUS_KM);
   return rad2deg(Math.asin(clamp(value, -1, 1)));
+}
+
+/**
+ * The local East/North/Up unit-vector basis at a geodetic latitude/longitude.
+ * Depends only on lat/lon (not on which Earth model produced a position), so
+ * it's equally valid for basic (spherical) and advanced (WGS84) ground-site
+ * positions — for a sphere this basis coincides with the position-vector-
+ * derived one basic mode implicitly uses, so nothing about basic mode changes.
+ */
+function localEastNorthUp(latDeg: number, lonDeg: number): { east: Vec3; north: Vec3; up: Vec3 } {
+  const phi = deg2rad(latDeg);
+  const lambda = deg2rad(lonDeg);
+  const sinPhi = Math.sin(phi);
+  const cosPhi = Math.cos(phi);
+  const sinLambda = Math.sin(lambda);
+  const cosLambda = Math.cos(lambda);
+  return {
+    east: { x: -sinLambda, y: cosLambda, z: 0 },
+    north: { x: -sinPhi * cosLambda, y: -sinPhi * sinLambda, z: cosPhi },
+    up: { x: cosPhi * cosLambda, y: cosPhi * sinLambda, z: sinPhi },
+  };
+}
+
+/**
+ * Azimuth (degrees, 0 = North, clockwise through 90 = East) of a satellite as
+ * seen from a ground site. Not previously computed anywhere — added
+ * specifically for advanced mode's horizon-profile lookup (`elevationDeg(sat)
+ * > horizonProfile[azimuthDeg(sat)]`), but it's mode-agnostic geometry so
+ * basic mode could use it too if it ever needed to.
+ */
+export function azimuthDeg(satEcef: Vec3, groundEcef: Vec3, groundLatDeg: number, groundLonDeg: number): number {
+  const { east, north } = localEastNorthUp(groundLatDeg, groundLonDeg);
+  const diff = vsub(satEcef, groundEcef);
+  const e = vdot(diff, east);
+  const n = vdot(diff, north);
+  const az = rad2deg(Math.atan2(e, n));
+  return az < 0 ? az + 360 : az;
 }
 
 /** Whether an inter-satellite link is geometrically possible between two active satellites. */
@@ -192,7 +255,8 @@ export function computeSnapshot(scenario: Scenario, tS: number): Snapshot {
     const entries: ElevationEntry[] = [];
     for (const [satId, satEcef] of activeEcef) {
       const el = elevationDeg(satEcef, g);
-      entries.push({ satellite_id: satId, elevation_deg: el, visible: el >= env.min_elevation_deg });
+      const az = azimuthDeg(satEcef, g, site.lat_deg, site.lon_deg);
+      entries.push({ satellite_id: satId, elevation_deg: el, azimuth_deg: az, visible: el >= env.min_elevation_deg });
     }
     elevation_deg[site.id] = entries;
   }

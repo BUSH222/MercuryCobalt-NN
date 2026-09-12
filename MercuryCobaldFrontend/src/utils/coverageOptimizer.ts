@@ -24,6 +24,8 @@
  * while a search runs.
  */
 import type { CoverageCandidate, GroundSite, Plane, Scenario } from "../domain";
+import type { EarthModel } from "../store/useUiStore";
+import { applyAdvancedVisibility } from "../terrain";
 import { computeSnapshot, timeGrid } from "./geometry";
 import { computeRoute } from "./routing";
 import { generateId } from "./id";
@@ -38,6 +40,8 @@ export interface CoverageSearchOptions {
   refineTopK?: number;
   /** How many final ranked candidates to return. */
   resultCount?: number;
+  /** Matches whatever's currently selected in settings, so the search ranks candidates the same way the app would actually decide visibility. */
+  earthModel?: EarthModel;
 }
 
 const DEFAULTS: Required<CoverageSearchOptions> = {
@@ -47,7 +51,14 @@ const DEFAULTS: Required<CoverageSearchOptions> = {
   cheapStride: 12,
   refineTopK: 5,
   resultCount: 5,
+  earthModel: "basic",
 };
+
+/** Ground-truth terrain is a function of the ground site alone, not the candidate constellation — safe (and cheap) to reuse the same cached horizon profiles across every candidate scenario evaluated in this search. */
+function snapshotWithEarthModel(scenario: Scenario, tS: number, earthModel: EarthModel) {
+  const snap = computeSnapshot(scenario, tS);
+  return earthModel === "advanced" ? applyAdvancedVisibility(snap, scenario.ground_sites) : snap;
+}
 
 function normalizeDeg(deg: number): number {
   const m = deg % 360;
@@ -120,7 +131,7 @@ export async function searchCoverageConfigurations(
       const candidate = buildCandidateScenario(baseline, planeIds, raanSpacing, phaseSpacing);
       const visibleCounts = new Map(clients.map((c) => [c.id, 0]));
       for (const t of decimatedGrid) {
-        const snap = computeSnapshot(candidate, t);
+        const snap = snapshotWithEarthModel(candidate, t, opts.earthModel);
         for (const client of clients) {
           if ((snap.elevation_deg[client.id] ?? []).some((e) => e.visible)) {
             visibleCounts.set(client.id, (visibleCounts.get(client.id) ?? 0) + 1);
@@ -185,7 +196,7 @@ export async function searchCoverageConfigurations(
       let currentOutageSteps = 0;
       let longestOutageSteps = 0;
       for (const t of fullGrid) {
-        const snap = computeSnapshot(candidate, t);
+        const snap = snapshotWithEarthModel(candidate, t, opts.earthModel);
         const route = computeRoute(candidate, snap, client);
         if (route.path.length > 0) {
           connectedCount++;

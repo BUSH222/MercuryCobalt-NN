@@ -3,10 +3,14 @@ services:
     image: mercury-cobalt:${IMAGE_TAG:-local}
     build:
       context: .
+      target: runtime
       args:
         NODE_BUILD_HEAP_MB: ${NODE_BUILD_HEAP_MB:-1024}
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:${PORT:-8080}:8080"
+    depends_on:
+      terrain:
+        condition: service_healthy
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -23,3 +27,41 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # Terrain proxy for the "Advanced (terrain, WGS84)" earth model — see
+  # HOW_IT_WORKS.md. Deployed as its own container per the README's existing
+  # guidance; `web` reaches it only through nginx's `/api/` proxy_pass, never
+  # a host-mapped port, so it isn't directly exposed to the internet.
+  terrain:
+    image: mercury-cobalt-terrain:${IMAGE_TAG:-local}
+    build:
+      context: .
+      target: backend
+    environment:
+      OPENTOPOGRAPHY_API_KEY: ${OPENTOPOGRAPHY_API_KEY:-}
+    expose:
+      - "8000"
+    volumes:
+      - terrain_cache:/app/.terrain_cache
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: ${TERRAIN_MEMORY_LIMIT:-512m}
+    memswap_limit: ${TERRAIN_MEMORY_LIMIT:-512m}
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Persists the parsed-terrain disk cache across container recreation (a
+  # rebuild, a redeploy, a demo restart) so repeated OpenTopography calls for
+  # the same ground sites hit the cache instead of the rate limit.
+  terrain_cache: {}

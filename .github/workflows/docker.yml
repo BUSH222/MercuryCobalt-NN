@@ -24,6 +24,7 @@ jobs:
       - name: Verify HTTP serving and update caching
         shell: python
         run: |
+          import json
           import re
           from urllib.error import HTTPError
           from urllib.request import urlopen
@@ -31,6 +32,19 @@ jobs:
           base = "http://127.0.0.1:8080"
           with urlopen(base + "/healthz", timeout=5) as response:
               assert response.read() == b"ok\n"
+          # No OPENTOPOGRAPHY_API_KEY secret in CI: the terrain service must still
+          # boot and answer healthz (see terrain_api/config.py), and /api/terrain
+          # (proxied through nginx) must fail with a clear, typed error rather
+          # than a bare 500 — this is the one failure mode CI can exercise for
+          # real without hitting the actual OpenTopography API.
+          try:
+              urlopen(base + "/api/terrain?lat=1&lon=1", timeout=10)
+          except HTTPError as error:
+              assert error.code == 502
+              body = json.loads(error.read())
+              assert body["error"] == "invalid_api_key"
+          else:
+              raise AssertionError("Expected /api/terrain to fail without a configured API key")
           with urlopen(base + "/", timeout=5) as response:
               html = response.read()
               assert response.headers["Cache-Control"] == "no-cache"

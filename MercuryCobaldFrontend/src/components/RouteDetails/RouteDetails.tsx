@@ -21,6 +21,7 @@ export function RouteDetails() {
   const { scenario, route, linkSample, clients, selectedClientId, selectClient, tGrid, timeIndex, setTimeIndex, timeUnit } =
     useMapViewData();
   const timeUnitForDurations = useUiStore((s) => s.timeUnit);
+  const earthModel = useUiStore((s) => s.earthModel);
 
   if (!scenario) {
     return (
@@ -43,6 +44,15 @@ export function RouteDetails() {
       </div>
 
       <div className={styles.content}>
+        {earthModel === "advanced" && (
+          <div className={styles.advancedBanner}>
+            <Icon name="globe" size={14} />
+            <span>
+              Продвинутый режим: горизонт видимости вычислен по реальному рельефу (WGS84), <code>min_elevation_deg</code>{" "}
+              не используется.
+            </span>
+          </div>
+        )}
         <div className={styles.note}>
           Алгоритм: поиск в ширину (BFS) по графу активных ISL-связей — кратчайший по числу переходов маршрут от
           клиентского пункта до ближайшего доступного шлюза. Маршрут пересчитывается на каждый отсчёт времени по

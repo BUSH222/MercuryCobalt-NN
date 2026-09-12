@@ -79,8 +79,8 @@ export const runComputation = createAsyncThunk<SeriesResult, void, { state: Root
   "scenario/runComputation",
   async (_, { getState }) => {
     const effectiveScenario = getState().scenario.effectiveScenario!;
-    const linkAssumptions = useUiStore.getState().linkAssumptions;
-    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions);
+    const { linkAssumptions, earthModel } = useUiStore.getState();
+    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions, earthModel);
   },
   { condition: (_, { getState }) => Boolean(getState().scenario.effectiveScenario) },
 );
@@ -89,7 +89,8 @@ export const searchCoverage = createAsyncThunk<CoverageCandidate[], void, { stat
   "scenario/searchCoverage",
   async (_, { getState }) => {
     const effectiveScenario = getState().scenario.effectiveScenario!;
-    return scenarioApi.searchCoverage(effectiveScenario);
+    const { earthModel } = useUiStore.getState();
+    return scenarioApi.searchCoverage(effectiveScenario, { earthModel });
   },
   { condition: (_, { getState }) => Boolean(getState().scenario.effectiveScenario) },
 );

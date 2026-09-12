@@ -8,6 +8,8 @@ import type {
   SeriesResult,
 } from "../domain";
 import { DEFAULT_LINK_ASSUMPTIONS, RESULT_SCHEMA_VERSION } from "../domain";
+import type { EarthModel } from "../store/useUiStore";
+import { applyAdvancedVisibility } from "../terrain";
 import { computeSnapshot, timeGrid } from "../utils/geometry";
 import { computeRoute } from "../utils/routing";
 import { computeClientMetrics } from "../utils/metrics";
@@ -24,14 +26,22 @@ function delay<T>(value: T, ms = SIMULATED_LATENCY_MS): Promise<T> {
 
 export interface ScenarioApi {
   loadScenarioFromText(text: string): Promise<ValidationResult>;
-  computeSeries(scenario: Scenario, assumptions?: LinkAssumptions): Promise<SeriesResult>;
+  computeSeries(scenario: Scenario, assumptions?: LinkAssumptions, earthModel?: EarthModel): Promise<SeriesResult>;
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport;
   searchCoverage(scenario: Scenario, options?: CoverageSearchOptions): Promise<CoverageCandidate[]>;
 }
 
-function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions): SeriesResult {
+function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions, earthModel: EarthModel): SeriesResult {
   const grid = timeGrid(scenario.environment);
-  const snapshots = grid.map((t) => computeSnapshot(scenario, t));
+  const rawSnapshots = grid.map((t) => computeSnapshot(scenario, t));
+  // Basic mode: computeSnapshot's own visibility, completely untouched. Advanced
+  // mode: override per ground site from its (already-warmed, see
+  // useAdvancedTerrainSync.ts) horizon profile — a swap-in layer, not a rewrite
+  // of computeSnapshot itself.
+  const snapshots =
+    earthModel === "advanced"
+      ? rawSnapshots.map((snap) => applyAdvancedVisibility(snap, scenario.ground_sites))
+      : rawSnapshots;
 
   const clients = scenario.ground_sites.filter((s) => s.role === "client");
   const routesByClient: Record<string, Route[]> = {};
@@ -70,8 +80,12 @@ export const scenarioApi: ScenarioApi = {
     return delay(parseScenarioText(text), 200);
   },
 
-  async computeSeries(scenario: Scenario, assumptions: LinkAssumptions = DEFAULT_LINK_ASSUMPTIONS): Promise<SeriesResult> {
-    return delay(computeSeriesSync(scenario, assumptions), SIMULATED_LATENCY_MS);
+  async computeSeries(
+    scenario: Scenario,
+    assumptions: LinkAssumptions = DEFAULT_LINK_ASSUMPTIONS,
+    earthModel: EarthModel = "basic",
+  ): Promise<SeriesResult> {
+    return delay(computeSeriesSync(scenario, assumptions, earthModel), SIMULATED_LATENCY_MS);
   },
 
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport {

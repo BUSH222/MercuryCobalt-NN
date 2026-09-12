@@ -7,6 +7,7 @@ import { ExportPanel } from "./components/SettingsPanel/ExportPanel";
 import { OnboardingTour } from "./components/Onboarding/OnboardingTour";
 import { useOnboardingStore } from "./store/useOnboardingStore";
 import { useAppSelector } from "./store/hooks";
+import { useAdvancedTerrainSync } from "./terrain/useAdvancedTerrainSync";
 import styles from "./App.module.css";
 
 function App() {
@@ -19,6 +20,10 @@ function App() {
   useEffect(() => {
     if (hasScenario && !hasSeenTour) startTour();
   }, [hasScenario, hasSeenTour, startTour]);
+
+  // Mounted here (not inside Settings) so the terrain fetch keeps running for
+  // every ground site regardless of which panels are open — see the hook.
+  useAdvancedTerrainSync();
 
   return (
     <div className={styles.shell}>

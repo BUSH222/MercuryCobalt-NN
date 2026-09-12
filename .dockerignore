@@ -8,5 +8,6 @@
 **/*.log
 **/playwright-report
 **/test-results
+.terrain_cache
 .agents
 .codex

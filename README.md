@@ -1,8 +1,11 @@
 # Mercury Cobalt
 
 React/TypeScript application in `MercuryCobaldFrontend`. Computation and saved
-scenarios currently live in the browser. `main.py` is a placeholder, so there is
-no Python service or database to deploy yet.
+scenarios live in the browser. The one exception is the optional "Advanced
+(terrain, WGS84)" earth model: it calls a small FastAPI proxy (`terrain_api/`,
+`main.py`) that fetches and caches real elevation data from OpenTopography —
+see `MercuryCobaldFrontend/HOW_IT_WORKS.md` for how it fits together. Nothing
+else in the app makes a network call.
 
 ## Deploy with Docker
 
@@ -95,10 +98,16 @@ process exits and host restarts; unhealthy status alone does not restart a
 container. See the [Compose service reference](https://docs.docker.com/reference/compose-file/services/)
 for these resource and isolation settings.
 
-If a backend is added, deploy it separately and configure an API proxy; this
-image currently serves only the frontend. Environment files are excluded from
-the build context. Future Vite variables must be wired in at build time and are
-public browser configuration, never secrets.
+The terrain backend is deployed separately, per the pattern above: a second
+`terrain` container (same `Dockerfile`, `target: backend`), reachable by the
+frontend only through nginx's `/api/` proxy — it has no host-mapped port of
+its own. It boots and serves `/healthz` without any secret configured; only
+`GET /api/terrain` needs `OPENTOPOGRAPHY_API_KEY` (get a free key at
+opentopography.org), supplied via `.env`/environment at deploy time, never
+baked into the image or committed. Its on-disk cache lives in the
+`terrain_cache` named volume, so it survives container recreation. Environment
+files are excluded from the build context. Future Vite variables must be wired
+in at build time and are public browser configuration, never secrets.
 
 ## Local development
 
@@ -110,3 +119,17 @@ npm run dev
 
 Use Node 24. Root Python tooling uses uv, Ruff, and ty; `sh setup.sh` installs
 its pre-commit hooks.
+
+To also use the "Advanced (terrain, WGS84)" earth model locally (optional —
+every other feature works without it), run the terrain backend alongside the
+frontend:
+
+```sh
+uv run uvicorn main:app --reload --port 8000
+```
+
+Vite's dev server proxies `/api/*` to `http://127.0.0.1:8000` (see
+`vite.config.ts`), so the frontend needs no configuration either way. Put
+`OPENTOPOGRAPHY_API_KEY=...` in a `.env` file at the repository root (see
+`.env.example`) — without it the backend still runs, and only switching to
+advanced mode in Settings surfaces a clear error.

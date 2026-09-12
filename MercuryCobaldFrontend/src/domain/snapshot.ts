@@ -22,7 +22,14 @@ export type IslEdge = [id_1: string, id_2: string, distance_km: number];
 export interface ElevationEntry {
   satellite_id: string;
   elevation_deg: number;
-  /** elevation_deg >= environment.min_elevation_deg */
+  /** 0 = North, clockwise through 90 = East. Only consumer today is advanced-mode's horizon-profile lookup. */
+  azimuth_deg: number;
+  /**
+   * Basic mode: `elevation_deg >= environment.min_elevation_deg`. Advanced
+   * mode overrides this per ground site from the terrain horizon profile
+   * instead (see `terrain/applyAdvancedVisibility.ts`) — `min_elevation_deg`
+   * plays no part in that path at all.
+   */
   visible: boolean;
 }
 
