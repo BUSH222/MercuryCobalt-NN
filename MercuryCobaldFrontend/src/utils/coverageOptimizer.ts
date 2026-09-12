@@ -23,7 +23,8 @@
  * The loop yields to the event loop periodically so the tab stays responsive
  * while a search runs.
  */
-import type { CoverageCandidate, GroundSite, Plane, Scenario } from "../domain";
+import type { CoverageCandidate, GroundSite, Plane, RoutingAlgorithmId, Scenario } from "../domain";
+import { DEFAULT_ROUTING_ALGORITHM_ID } from "../domain";
 import { computeSnapshot, timeGrid } from "./geometry";
 import { computeRoute } from "./routing";
 import { generateId } from "./id";
@@ -38,6 +39,8 @@ export interface CoverageSearchOptions {
   refineTopK?: number;
   /** How many final ranked candidates to return. */
   resultCount?: number;
+  /** Pathfinding strategy used for the accurate refinement stage's routing — matches whatever is currently selected in settings, so the search ranks candidates the same way the app would actually route them. */
+  routingAlgorithm?: RoutingAlgorithmId;
 }
 
 const DEFAULTS: Required<CoverageSearchOptions> = {
@@ -47,6 +50,7 @@ const DEFAULTS: Required<CoverageSearchOptions> = {
   cheapStride: 12,
   refineTopK: 5,
   resultCount: 5,
+  routingAlgorithm: DEFAULT_ROUTING_ALGORITHM_ID,
 };
 
 function normalizeDeg(deg: number): number {
@@ -186,7 +190,7 @@ export async function searchCoverageConfigurations(
       let longestOutageSteps = 0;
       for (const t of fullGrid) {
         const snap = computeSnapshot(candidate, t);
-        const route = computeRoute(candidate, snap, client);
+        const route = computeRoute(candidate, snap, client, opts.routingAlgorithm);
         if (route.path.length > 0) {
           connectedCount++;
           currentOutageSteps = 0;

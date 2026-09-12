@@ -3,6 +3,7 @@ import { Toggle } from "../common/Toggle";
 import { Chip } from "../common/Chip";
 import { useUiStore } from "../../store/useUiStore";
 import { EnvironmentSettings } from "./EnvironmentSettings";
+import { ROUTING_ALGORITHM_DESCRIPTION, ROUTING_ALGORITHM_IDS, ROUTING_ALGORITHM_LABEL } from "../../domain";
 import styles from "./SettingsPanel.module.css";
 
 /**
@@ -20,12 +21,34 @@ export function SettingsPanel() {
   const setTimeUnit = useUiStore((s) => s.setTimeUnit);
   const linkAssumptions = useUiStore((s) => s.linkAssumptions);
   const setLinkAssumptions = useUiStore((s) => s.setLinkAssumptions);
+  const routingAlgorithm = useUiStore((s) => s.routingAlgorithm);
+  const setRoutingAlgorithm = useUiStore((s) => s.setRoutingAlgorithm);
 
   if (!open) return null;
 
   return (
     <Modal title="Настройки" onClose={() => setOpen(false)}>
       <EnvironmentSettings />
+
+      <div className={styles.group}>
+        <span className={styles.groupTitle}>Алгоритм маршрутизации</span>
+        <span className={styles.hint}>
+          Способ поиска маршрута от клиентского пункта до шлюза. Меняется мгновенно — текущий отображаемый маршрут
+          пересчитывается сразу, без повторного «Запустить расчёт»; на статистику и сравнение вариантов новый выбор
+          повлияет с ближайшим пересчётом.
+        </span>
+        <div className={styles.algorithmRow}>
+          {ROUTING_ALGORITHM_IDS.map((id) => (
+            <Chip
+              key={id}
+              label={ROUTING_ALGORITHM_LABEL[id]}
+              active={routingAlgorithm === id}
+              onClick={() => setRoutingAlgorithm(id)}
+            />
+          ))}
+        </div>
+        <span className={styles.hint}>{ROUTING_ALGORITHM_DESCRIPTION[routingAlgorithm]}</span>
+      </div>
 
       <div className={styles.group}>
         <span className={styles.groupTitle}>Отображение</span>

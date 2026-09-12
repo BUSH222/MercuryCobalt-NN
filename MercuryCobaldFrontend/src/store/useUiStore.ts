@@ -8,7 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TimeDisplayUnit } from "../utils/time";
-import { DEFAULT_LINK_ASSUMPTIONS, type LinkAssumptions } from "../domain";
+import { DEFAULT_LINK_ASSUMPTIONS, DEFAULT_ROUTING_ALGORITHM_ID, type LinkAssumptions, type RoutingAlgorithmId } from "../domain";
 
 export type MainView = "map-equirect" | "map-polar" | "map-3d" | "stats" | "compare" | "route";
 
@@ -24,6 +24,8 @@ interface UiState {
   exportOpen: boolean;
   /** Display-tunable physics assumptions (frequency, per-hop delay, status thresholds); not part of the scenario schema. */
   linkAssumptions: LinkAssumptions;
+  /** Selected pathfinding strategy (see `utils/routing/`) — a UI setting, not scenario data. */
+  routingAlgorithm: RoutingAlgorithmId;
   toggleSidebar: () => void;
   /** Opens/closes a panel; refuses to close the last remaining open panel. */
   togglePanel: (view: MainView) => void;
@@ -33,6 +35,7 @@ interface UiState {
   setSettingsOpen: (open: boolean) => void;
   setExportOpen: (open: boolean) => void;
   setLinkAssumptions: (patch: Partial<LinkAssumptions>) => void;
+  setRoutingAlgorithm: (id: RoutingAlgorithmId) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -46,6 +49,7 @@ export const useUiStore = create<UiState>()(
       settingsOpen: false,
       exportOpen: false,
       linkAssumptions: DEFAULT_LINK_ASSUMPTIONS,
+      routingAlgorithm: DEFAULT_ROUTING_ALGORITHM_ID,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       togglePanel: (view) =>
         set((s) => {
@@ -62,6 +66,7 @@ export const useUiStore = create<UiState>()(
       setSettingsOpen: (open) => set({ settingsOpen: open }),
       setExportOpen: (open) => set({ exportOpen: open }),
       setLinkAssumptions: (patch) => set((s) => ({ linkAssumptions: { ...s.linkAssumptions, ...patch } })),
+      setRoutingAlgorithm: (id) => set({ routingAlgorithm: id }),
     }),
     {
       name: "cosmohack-ui-settings",
@@ -71,6 +76,7 @@ export const useUiStore = create<UiState>()(
         showAllIsl: state.showAllIsl,
         timeUnit: state.timeUnit,
         linkAssumptions: state.linkAssumptions,
+        routingAlgorithm: state.routingAlgorithm,
       }),
     },
   ),

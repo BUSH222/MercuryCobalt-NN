@@ -45,6 +45,26 @@ function vnorm(a: Vec3): number {
   return Math.sqrt(vdot(a, a));
 }
 
+/** Euclidean distance between two points, in whatever unit their coordinates use (km throughout this codebase). */
+export function distanceKm(a: Vec3, b: Vec3): number {
+  return vnorm(vsub(a, b));
+}
+
+/**
+ * Altitude (km above the reference sphere of radius `EARTH_RADIUS_KM`) of the
+ * point on segment a-b closest to Earth's center — the same closest-point
+ * projection used by `islContactPossible` below, factored out so other checks
+ * (e.g. the Karman-line proximity warning) can reuse it without redoing the
+ * vector algebra. Negative when the segment actually dips inside the sphere.
+ */
+export function closestApproachAltitudeKm(a: Vec3, b: Vec3): number {
+  const d = vsub(b, a);
+  const dd = vdot(d, d);
+  const q = dd === 0 ? 0 : clamp(-vdot(a, d) / dd, 0, 1);
+  const closest = vadd(a, vscale(d, q));
+  return vnorm(closest) - EARTH_RADIUS_KM;
+}
+
 /** Plane augmented with the shared constellation inclination, for satelliteEci(). */
 export type PlaneWithInclination = Plane & { inclination_deg: number };
 
@@ -112,14 +132,9 @@ export function elevationDeg(satEcef: Vec3, groundEcef: Vec3): number {
 
 /** Whether an inter-satellite link is geometrically possible between two active satellites. */
 export function islContactPossible(a: Vec3, b: Vec3, islRangeKm: number): boolean {
-  const d = vsub(b, a);
-  const dist = vnorm(d);
+  const dist = distanceKm(a, b);
   if (dist >= islRangeKm) return false;
-  const dd = vdot(d, d);
-  const q = dd === 0 ? 0 : clamp(-vdot(a, d) / dd, 0, 1);
-  const closest = vadd(a, vscale(d, q));
-  const distCenterToSegment = vnorm(closest);
-  return distCenterToSegment > EARTH_RADIUS_KM;
+  return closestApproachAltitudeKm(a, b) > 0;
 }
 
 export function isSatelliteActive(

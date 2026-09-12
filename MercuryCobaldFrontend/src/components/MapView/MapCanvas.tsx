@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { geoGraticule10, geoPath, type GeoProjection } from "d3-geo";
 import type { Feature, LineString } from "geojson";
 import type { GroundSite, IslEdge, SatelliteState } from "../../domain";
+import type { RouteKarmanBreach } from "../../utils/karmanLineCheck";
 import { LAND_FEATURES, NORTHERN_PARALLELS_DEG, parallelCircle } from "../../utils/mapProjections";
 import styles from "./MapCanvas.module.css";
 
@@ -19,6 +20,8 @@ interface MapCanvasProps {
   edges: IslEdge[];
   routeEdgePairs: [string, string][];
   routeNodeIds: Set<string>;
+  /** ISL segments of the current route dipping below the Karman line — see `utils/karmanLineCheck.ts`. */
+  karmanBreaches: RouteKarmanBreach[];
   showAllIsl: boolean;
   showParallels?: boolean;
   selectedNodeId: string | null;
@@ -38,6 +41,7 @@ export function MapCanvas({
   edges,
   routeEdgePairs,
   routeNodeIds,
+  karmanBreaches,
   showAllIsl,
   showParallels,
   selectedNodeId,
@@ -98,6 +102,26 @@ export function MapCanvas({
         const d = pathGen(lineFeature(posA, posB));
         if (!d) return null;
         return <path key={`route-${idx}-${a}-${b}`} className={styles.routeEdge} d={d} />;
+      })}
+
+      {karmanBreaches.map((breach) => {
+        const posA = lonLatOf(breach.fromId);
+        const posB = lonLatOf(breach.toId);
+        if (!posA || !posB) return null;
+        const screenA = projection(posA);
+        const screenB = projection(posB);
+        if (!screenA || !screenB) return null;
+        const mx = (screenA[0] + screenB[0]) / 2;
+        const my = (screenA[1] + screenB[1]) / 2;
+        return (
+          <g key={`karman-${breach.fromId}-${breach.toId}`} className={styles.karmanMarker}>
+            <circle cx={mx} cy={my} r={6} />
+            <text x={mx} y={my}>
+              !
+            </text>
+            <title>{`ISL-сегмент ${breach.fromId} – ${breach.toId}: на ${breach.deficitKm.toFixed(1)} км ниже линии Кармана (высота ${breach.altitudeKm.toFixed(1)} км)`}</title>
+          </g>
+        );
       })}
 
       {satellites.map((sat) => {

@@ -1,8 +1,17 @@
+import { useMemo } from "react";
 import { Icon } from "../common/Icon";
 import { TimeScrubber } from "../Timeline/TimeScrubber";
 import { useMapViewData } from "../../features/map-visualization/useMapViewData";
-import { NO_ROUTE_REASON_LABEL, type LinkStatus } from "../../domain";
+import {
+  NO_ROUTE_REASON_LABEL,
+  ROUTING_ALGORITHM_DESCRIPTION,
+  ROUTING_ALGORITHM_IDS,
+  ROUTING_ALGORITHM_LABEL,
+  type LinkStatus,
+} from "../../domain";
 import { useUiStore } from "../../store/useUiStore";
+import { buildPathfindingGraph, ROUTING_STRATEGIES, summarizePath } from "../../utils/routing";
+import type { RouteKarmanBreach } from "../../utils/karmanLineCheck";
 import styles from "./RouteDetails.module.css";
 
 const STATUS_LABEL: Record<LinkStatus, string> = {
@@ -18,9 +27,38 @@ const STATUS_CLASS: Record<LinkStatus, string> = {
 };
 
 export function RouteDetails() {
-  const { scenario, route, linkSample, clients, selectedClientId, selectClient, tGrid, timeIndex, setTimeIndex, timeUnit } =
-    useMapViewData();
+  const {
+    scenario,
+    snapshot,
+    route,
+    linkSample,
+    karmanBreaches,
+    clients,
+    selectedClient,
+    selectedClientId,
+    selectClient,
+    tGrid,
+    timeIndex,
+    setTimeIndex,
+    timeUnit,
+    routingAlgorithm,
+  } = useMapViewData();
   const timeUnitForDurations = useUiStore((s) => s.timeUnit);
+
+  const karmanByHop = useMemo(() => {
+    const map = new Map<string, RouteKarmanBreach>();
+    for (const breach of karmanBreaches) map.set(`${breach.fromId}>${breach.toId}`, breach);
+    return map;
+  }, [karmanBreaches]);
+
+  const algorithmComparison = useMemo(() => {
+    if (!scenario || !snapshot || !selectedClient) return [];
+    const { graph } = buildPathfindingGraph(scenario, snapshot, selectedClient);
+    return ROUTING_ALGORITHM_IDS.map((id) => {
+      const { path } = ROUTING_STRATEGIES[id].findPath(graph);
+      return { id, summary: summarizePath(graph, path) };
+    });
+  }, [scenario, snapshot, selectedClient]);
 
   if (!scenario) {
     return (
@@ -44,11 +82,35 @@ export function RouteDetails() {
 
       <div className={styles.content}>
         <div className={styles.note}>
-          Алгоритм: поиск в ширину (BFS) по графу активных ISL-связей — кратчайший по числу переходов маршрут от
-          клиентского пункта до ближайшего доступного шлюза. Маршрут пересчитывается на каждый отсчёт времени по
-          текущему составу связей. Если валидных маршрутов несколько, показан один из них — эталонного маршрута не
-          существует, важна лишь физическая допустимость показанного пути в данный момент.
+          <div className={styles.algorithmCaption}>Построено по: {ROUTING_ALGORITHM_LABEL[routingAlgorithm]}</div>
+          {ROUTING_ALGORITHM_DESCRIPTION[routingAlgorithm]}
         </div>
+
+        {algorithmComparison.length > 0 && (
+          <div className={styles.comparisonTable}>
+            <div className={styles.comparisonHeaderRow}>
+              <span>Алгоритм</span>
+              <span>Переходов</span>
+              <span>Дистанция</span>
+              <span>Устойчивость</span>
+            </div>
+            {algorithmComparison.map(({ id, summary }) => (
+              <div
+                key={id}
+                className={`${styles.comparisonRow} ${id === routingAlgorithm ? styles.comparisonRowActive : ""}`}
+              >
+                <span>{ROUTING_ALGORITHM_LABEL[id]}</span>
+                <span>{summary ? summary.hop_count : "—"}</span>
+                <span>{summary ? `${summary.total_distance_km.toFixed(0)} км` : "—"}</span>
+                <span>
+                  {summary && summary.bottleneck_margin_ratio !== null
+                    ? `${(summary.bottleneck_margin_ratio * 100).toFixed(0)}%`
+                    : "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {linkSample && (
           <>
@@ -98,22 +160,39 @@ export function RouteDetails() {
           <>
             <span className={styles.hopBadge}>{route.hop_count} переходов</span>
             <div className={styles.pathList}>
-              {route.nodes.map((node, idx) => (
-                <div key={`${node.id}-${idx}`}>
-                  <div className={styles.node}>
-                    <div className={styles.nodeIcon}>
-                      <Icon name={node.kind === "satellite" ? "satellite" : node.kind === "gateway" ? "dish" : "gateway"} />
-                    </div>
-                    <div>
-                      <div className={styles.nodeLabel}>{node.id}</div>
-                      <div className={styles.nodeKind}>
-                        {node.kind === "client" ? "клиентский пункт" : node.kind === "gateway" ? "шлюз" : "спутник"}
+              {route.nodes.map((node, idx) => {
+                const nextNode = route.nodes[idx + 1];
+                const breach = nextNode ? karmanByHop.get(`${node.id}>${nextNode.id}`) : undefined;
+                return (
+                  <div key={`${node.id}-${idx}`}>
+                    <div className={styles.node}>
+                      <div className={styles.nodeIcon}>
+                        <Icon name={node.kind === "satellite" ? "satellite" : node.kind === "gateway" ? "dish" : "gateway"} />
+                      </div>
+                      <div>
+                        <div className={styles.nodeLabel}>{node.id}</div>
+                        <div className={styles.nodeKind}>
+                          {node.kind === "client" ? "клиентский пункт" : node.kind === "gateway" ? "шлюз" : "спутник"}
+                        </div>
                       </div>
                     </div>
+                    {idx < route.nodes.length - 1 && (
+                      <div className={styles.connectorWrap}>
+                        <div className={styles.connector} />
+                        {breach && (
+                          <span
+                            className={styles.karmanBadge}
+                            title={`Ближайшая к Земле точка ISL-сегмента ${node.id} – ${nextNode!.id}: высота ${breach.altitudeKm.toFixed(1)} км`}
+                          >
+                            <Icon name="warning" size={12} />
+                            на {breach.deficitKm.toFixed(1)} км ниже линии Кармана
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {idx < route.nodes.length - 1 && <div className={styles.connector} />}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

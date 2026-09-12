@@ -4,10 +4,11 @@ import type {
   LinkAssumptions,
   ResultExport,
   Route,
+  RoutingAlgorithmId,
   Scenario,
   SeriesResult,
 } from "../domain";
-import { DEFAULT_LINK_ASSUMPTIONS, RESULT_SCHEMA_VERSION } from "../domain";
+import { DEFAULT_LINK_ASSUMPTIONS, DEFAULT_ROUTING_ALGORITHM_ID, RESULT_SCHEMA_VERSION } from "../domain";
 import { computeSnapshot, timeGrid } from "../utils/geometry";
 import { computeRoute } from "../utils/routing";
 import { computeClientMetrics } from "../utils/metrics";
@@ -24,12 +25,12 @@ function delay<T>(value: T, ms = SIMULATED_LATENCY_MS): Promise<T> {
 
 export interface ScenarioApi {
   loadScenarioFromText(text: string): Promise<ValidationResult>;
-  computeSeries(scenario: Scenario, assumptions?: LinkAssumptions): Promise<SeriesResult>;
+  computeSeries(scenario: Scenario, assumptions?: LinkAssumptions, algorithmId?: RoutingAlgorithmId): Promise<SeriesResult>;
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport;
   searchCoverage(scenario: Scenario, options?: CoverageSearchOptions): Promise<CoverageCandidate[]>;
 }
 
-function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions): SeriesResult {
+function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions, algorithmId: RoutingAlgorithmId): SeriesResult {
   const grid = timeGrid(scenario.environment);
   const snapshots = grid.map((t) => computeSnapshot(scenario, t));
 
@@ -38,7 +39,7 @@ function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions): Se
   const samplesByClient: Record<string, ClientLinkSample[]> = {};
 
   for (const client of clients) {
-    const routes = snapshots.map((snap) => computeRoute(scenario, snap, client));
+    const routes = snapshots.map((snap) => computeRoute(scenario, snap, client, algorithmId));
     routesByClient[client.id] = routes;
     const samples = routes.map((route, idx) => computeLinkSample(scenario, snapshots[idx]!, route, client, assumptions));
     fillHandoverTiming(samples);
@@ -70,8 +71,12 @@ export const scenarioApi: ScenarioApi = {
     return delay(parseScenarioText(text), 200);
   },
 
-  async computeSeries(scenario: Scenario, assumptions: LinkAssumptions = DEFAULT_LINK_ASSUMPTIONS): Promise<SeriesResult> {
-    return delay(computeSeriesSync(scenario, assumptions), SIMULATED_LATENCY_MS);
+  async computeSeries(
+    scenario: Scenario,
+    assumptions: LinkAssumptions = DEFAULT_LINK_ASSUMPTIONS,
+    algorithmId: RoutingAlgorithmId = DEFAULT_ROUTING_ALGORITHM_ID,
+  ): Promise<SeriesResult> {
+    return delay(computeSeriesSync(scenario, assumptions, algorithmId), SIMULATED_LATENCY_MS);
   },
 
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport {

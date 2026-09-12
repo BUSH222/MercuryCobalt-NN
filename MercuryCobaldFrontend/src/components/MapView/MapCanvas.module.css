@@ -88,3 +88,18 @@
   stroke-width: 2.5px;
   pointer-events: none;
 }
+
+.karmanMarker circle {
+  fill: var(--warning);
+  stroke: #0a0e14;
+  stroke-width: 1;
+}
+
+.karmanMarker text {
+  fill: #0a0e14;
+  font-size: 8px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}

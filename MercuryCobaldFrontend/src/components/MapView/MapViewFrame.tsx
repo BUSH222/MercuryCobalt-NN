@@ -29,6 +29,7 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
     setTimeIndex,
     routeEdgePairs,
     routeNodeIds,
+    karmanBreaches,
     showAllIsl,
     setShowAllIsl,
     timeUnit,
@@ -85,6 +86,7 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
           edges={snapshot.edges}
           routeEdgePairs={routeEdgePairs}
           routeNodeIds={routeNodeIds}
+          karmanBreaches={karmanBreaches}
           showAllIsl={showAllIsl}
           showParallels={showParallels}
           selectedNodeId={selectedNode?.id ?? null}

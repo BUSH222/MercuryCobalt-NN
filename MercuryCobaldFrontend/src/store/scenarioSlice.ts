@@ -79,8 +79,8 @@ export const runComputation = createAsyncThunk<SeriesResult, void, { state: Root
   "scenario/runComputation",
   async (_, { getState }) => {
     const effectiveScenario = getState().scenario.effectiveScenario!;
-    const linkAssumptions = useUiStore.getState().linkAssumptions;
-    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions);
+    const { linkAssumptions, routingAlgorithm } = useUiStore.getState();
+    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions, routingAlgorithm);
   },
   { condition: (_, { getState }) => Boolean(getState().scenario.effectiveScenario) },
 );
@@ -89,7 +89,8 @@ export const searchCoverage = createAsyncThunk<CoverageCandidate[], void, { stat
   "scenario/searchCoverage",
   async (_, { getState }) => {
     const effectiveScenario = getState().scenario.effectiveScenario!;
-    return scenarioApi.searchCoverage(effectiveScenario);
+    const { routingAlgorithm } = useUiStore.getState();
+    return scenarioApi.searchCoverage(effectiveScenario, { routingAlgorithm });
   },
   { condition: (_, { getState }) => Boolean(getState().scenario.effectiveScenario) },
 );
