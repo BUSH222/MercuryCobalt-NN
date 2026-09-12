@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "../../components/common/Button";
+import { ResetAllModal } from "./ResetAllModal";
 import styles from "./ActionButtons.module.css";
 
 interface ActionButtonsProps {
@@ -8,11 +9,20 @@ interface ActionButtonsProps {
   onRunComputation: () => void;
   onSaveVariant: (name: string) => void;
   onReset: () => void;
+  onResetAll: () => void;
 }
 
-export function ActionButtons({ computing, variantCount, onRunComputation, onSaveVariant, onReset }: ActionButtonsProps) {
+export function ActionButtons({
+  computing,
+  variantCount,
+  onRunComputation,
+  onSaveVariant,
+  onReset,
+  onResetAll,
+}: ActionButtonsProps) {
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState("");
+  const [confirmingResetAll, setConfirmingResetAll] = useState(false);
 
   return (
     <div className={styles.wrap}>
@@ -54,9 +64,16 @@ export function ActionButtons({ computing, variantCount, onRunComputation, onSav
 
       <div className={styles.row}>
         <Button icon="reset" variant="ghost" onClick={onReset}>
-          Сбросить
+          Сбросить изменения
+        </Button>
+        <Button icon="trash" variant="danger" onClick={() => setConfirmingResetAll(true)}>
+          Сбросить всё
         </Button>
       </div>
+
+      {confirmingResetAll && (
+        <ResetAllModal onConfirm={onResetAll} onClose={() => setConfirmingResetAll(false)} />
+      )}
     </div>
   );
 }

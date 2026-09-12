@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   addFailure,
   removeFailure,
+  resetAll,
   resetToBaseline,
   runComputation,
   saveVariant,
@@ -95,6 +96,7 @@ export function Sidebar() {
                 onRunComputation={() => void dispatch(runComputation())}
                 onSaveVariant={(name) => dispatch(saveVariant({ name }))}
                 onReset={() => void dispatch(resetToBaseline())}
+                onResetAll={() => dispatch(resetAll())}
               />
             </Section>
           </>
