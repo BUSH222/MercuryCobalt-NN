@@ -172,13 +172,14 @@ const scenarioSlice = createSlice({
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
     saveVariant(state, action: PayloadAction<{ name: string }>) {
-      if (!state.series || !state.effectiveScenario) return;
+      if (!state.series || !state.effectiveScenario || !state.baseline) return;
       state.variants.push({
         id: generateId("variant"),
         name: action.payload.name,
         created_at: new Date().toISOString(),
         overrides: state.overrides,
         effective_scenario: state.effectiveScenario,
+        baseline: state.baseline,
         metrics: state.series.metrics,
       });
     },
@@ -206,12 +207,19 @@ const scenarioSlice = createSlice({
     },
     /**
      * Rebuilds the derived `effectiveScenario` after a reload restores
-     * baseline/overrides from storage, and backfills `sim_date` for
-     * `overrides` persisted by an older version of the app that predates it.
+     * baseline/overrides from storage, and backfills fields persisted by an
+     * older version of the app that predates them: `sim_date` on the current
+     * `overrides`, and `baseline` on each saved variant. Before "Загрузить
+     * другой сценарий" existed, a variant could only ever have been saved
+     * from whatever scenario is currently loaded, so the current `baseline`
+     * is the *correct* value here, not just a placeholder.
      */
     rebuildAfterRehydrate(state) {
       if (!state.baseline) return;
       if (!state.overrides.sim_date) state.overrides.sim_date = DEFAULT_SIM_DATE;
+      for (const variant of state.variants) {
+        if (!variant.baseline) variant.baseline = state.baseline;
+      }
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
   },

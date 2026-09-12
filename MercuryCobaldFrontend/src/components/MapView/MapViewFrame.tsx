@@ -99,9 +99,11 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
           <NodeDetailsCard
             target={selectedNode}
             satellites={snapshot.satellites}
+            satelliteDesigns={scenario.design.satellites}
             groundSites={scenario.ground_sites}
             snapshot={snapshot}
             route={route}
+            sunEcef={sunEcef}
             onClose={() => setSelectedNode(null)}
           />
         )}

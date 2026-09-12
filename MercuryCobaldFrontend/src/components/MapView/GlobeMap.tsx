@@ -38,10 +38,21 @@ export default function GlobeMap() {
       <div className={styles.viewport} aria-label="Интерактивный 3D-глобус Земли">
         <GlobeBoundary>
           <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [1.6, 2.3, 2.3], fov: 42, near: 0.01, far: 30 }} gl={{ antialias: true, alpha: true }} fallback={<div className={styles.empty}>WebGL недоступен. Используйте прямоугольную карту.</div>}>
-            <GlobeScene scenario={scenario} snapshot={snapshot} routeEdgePairs={data.routeEdgePairs} routeNodeIds={data.routeNodeIds} showAllIsl={data.showAllIsl} satelliteCoverage={satelliteCoverage} groundCoverage={groundCoverage} selectedNode={selectedNode} onSelect={setSelectedNode} resetKey={resetKey} />
+            <GlobeScene scenario={scenario} snapshot={snapshot} routeEdgePairs={data.routeEdgePairs} routeNodeIds={data.routeNodeIds} showAllIsl={data.showAllIsl} satelliteCoverage={satelliteCoverage} groundCoverage={groundCoverage} selectedNode={selectedNode} onSelect={setSelectedNode} resetKey={resetKey} sunEcef={data.sunEcef} />
           </Canvas>
         </GlobeBoundary>
-        {selectedNode && <NodeDetailsCard target={selectedNode} satellites={snapshot.satellites} groundSites={scenario.ground_sites} snapshot={snapshot} route={route} onClose={() => setSelectedNode(null)} />}
+        {selectedNode && (
+          <NodeDetailsCard
+            target={selectedNode}
+            satellites={snapshot.satellites}
+            satelliteDesigns={scenario.design.satellites}
+            groundSites={scenario.ground_sites}
+            snapshot={snapshot}
+            route={route}
+            sunEcef={data.sunEcef}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
         <div className={styles.hint}>Перетаскивание — вращение · Колесо — масштаб · Нажатие — сведения</div>
       </div>
       <div className={styles.legend}>

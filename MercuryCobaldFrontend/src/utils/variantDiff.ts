@@ -1,8 +1,15 @@
-import type { Scenario, SavedVariant } from "../domain";
+import type { SavedVariant } from "../domain";
 import { DEFAULT_SIM_DATE } from "../domain";
 
-/** Human-readable summary of what a saved variant changed relative to the originally loaded scenario. */
-export function summarizeVariant(baseline: Scenario, variant: SavedVariant): string[] {
+/**
+ * Human-readable summary of what a saved variant changed relative to the
+ * scenario it was actually saved from (`variant.baseline`) — not whatever
+ * scenario happens to be loaded right now. Comparing variants saved from two
+ * different source files (see "Загрузить другой сценарий") only makes sense
+ * if each one keeps diffing against its own origin.
+ */
+export function summarizeVariant(variant: SavedVariant): string[] {
+  const baseline = variant.baseline;
   const lines: string[] = [];
   if (variant.overrides.launch_stage !== baseline.design.launch_stage) {
     lines.push(`Этап запуска: ${variant.overrides.launch_stage}`);

@@ -10,7 +10,12 @@ import type { ValidationError } from "../../utils/validation";
 import { SAMPLE_SCENARIOS } from "../../mocks/scenarios";
 import styles from "./ScenarioLoader.module.css";
 
-export function ScenarioLoader() {
+interface ScenarioLoaderProps {
+  /** Called after a scenario is successfully loaded — e.g. to close a wrapping modal when this is used to load a replacement scenario rather than the first one. */
+  onLoaded?: () => void;
+}
+
+export function ScenarioLoader({ onLoaded }: ScenarioLoaderProps = {}) {
   const dispatch = useAppDispatch();
   const [dragging, setDragging] = useState(false);
   const [pasteText, setPasteText] = useState("");
@@ -29,6 +34,7 @@ export function ScenarioLoader() {
       return;
     }
     await dispatch(loadScenario(result.scenario));
+    onLoaded?.();
   }
 
   async function handleFiles(files: FileList | null): Promise<void> {

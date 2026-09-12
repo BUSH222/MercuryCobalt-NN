@@ -6,6 +6,7 @@ import { useTerrainStore } from "../../store/useTerrainStore";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { setSimDate } from "../../store/scenarioSlice";
 import { DEFAULT_SIM_DATE } from "../../domain";
+import { ShadowAutoFailuresTrigger } from "../../features/configuration-editor/ShadowAutoFailuresTrigger";
 import { EnvironmentSettings } from "./EnvironmentSettings";
 import styles from "./SettingsPanel.module.css";
 
@@ -79,6 +80,7 @@ export function SettingsPanel() {
             onChange={(e) => e.target.value && dispatch(setSimDate(e.target.value))}
           />
         </label>
+        <ShadowAutoFailuresTrigger />
       </div>
 
       <div className={styles.group}>

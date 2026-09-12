@@ -38,6 +38,15 @@ export interface SavedVariant {
   created_at: string;
   overrides: ConfigOverrides;
   effective_scenario: Scenario;
+  /**
+   * The originally loaded scenario this variant's `overrides` are relative
+   * to — captured at save time rather than read from the app's current
+   * `baseline`, so that loading a *different* scenario file later (see
+   * "Загрузить другой сценарий") doesn't retroactively corrupt this
+   * variant's diff summary: it keeps comparing against the file it actually
+   * came from, not whatever happens to be loaded now.
+   */
+  baseline: Scenario;
   metrics: SeriesMetrics;
 }
 

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Icon } from "../common/Icon";
 import { IconButton } from "../common/Chip";
 import { Section } from "../common/Section";
@@ -14,11 +15,12 @@ import {
   updatePlane,
 } from "../../store/scenarioSlice";
 import { ScenarioLoader } from "../../features/scenario-loader/ScenarioLoader";
+import { LoadAnotherScenarioModal } from "../../features/scenario-loader/LoadAnotherScenarioModal";
 import { ScenarioSummary } from "../../features/configuration-editor/ScenarioSummary";
 import { LaunchStageControl } from "../../features/configuration-editor/LaunchStageControl";
 import { PlanesEditor } from "../../features/configuration-editor/PlanesEditor";
 import { FailuresEditor } from "../../features/configuration-editor/FailuresEditor";
-import { ShadowAutoFailures } from "../../features/configuration-editor/ShadowAutoFailures";
+import { ClearAutoShadowFailures } from "../../features/configuration-editor/ClearAutoShadowFailures";
 import { ActionButtons } from "../../features/configuration-editor/ActionButtons";
 import { CoverageOptimizer } from "../../features/configuration-editor/CoverageOptimizer";
 import type { LaunchStage } from "../../domain";
@@ -33,6 +35,7 @@ export function Sidebar() {
   const overrides = useAppSelector((s) => s.scenario.overrides);
   const computing = useAppSelector((s) => s.scenario.computing);
   const variantCount = useAppSelector((s) => s.scenario.variants.length);
+  const [loadAnotherOpen, setLoadAnotherOpen] = useState(false);
 
   if (collapsed) {
     return (
@@ -51,8 +54,15 @@ export function Sidebar() {
           <Icon name="brand" size={18} />
           Конфигурация группировки
         </span>
-        <IconButton icon="chevron-left" title="Свернуть панель" onClick={toggleSidebar} />
+        <div className={styles.headerActions}>
+          {effectiveScenario && (
+            <IconButton icon="upload" title="Загрузить другой сценарий" onClick={() => setLoadAnotherOpen(true)} />
+          )}
+          <IconButton icon="chevron-left" title="Свернуть панель" onClick={toggleSidebar} />
+        </div>
       </div>
+
+      {loadAnotherOpen && <LoadAnotherScenarioModal onClose={() => setLoadAnotherOpen(false)} />}
 
       <div className={styles.scroll}>
         {!effectiveScenario ? (
@@ -89,7 +99,7 @@ export function Sidebar() {
                 onAdd={(failure) => dispatch(addFailure(failure))}
                 onRemove={(index) => dispatch(removeFailure(index))}
               />
-              <ShadowAutoFailures />
+              <ClearAutoShadowFailures />
             </Section>
             <Section title="Действия">
               <ActionButtons

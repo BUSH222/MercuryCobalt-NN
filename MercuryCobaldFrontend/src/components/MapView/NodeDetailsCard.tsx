@@ -1,4 +1,6 @@
-import type { GroundSite, Route, SatelliteState, Snapshot } from "../../domain";
+import type { GroundSite, Route, Satellite, SatelliteState, Snapshot } from "../../domain";
+import type { Vec3 } from "../../utils/geometry";
+import { isEclipsed } from "../../utils/sun";
 import { IconButton } from "../common/Chip";
 import styles from "./NodeDetailsCard.module.css";
 import type { MapClickTarget } from "./MapCanvas";
@@ -6,16 +8,31 @@ import type { MapClickTarget } from "./MapCanvas";
 interface NodeDetailsCardProps {
   target: MapClickTarget;
   satellites: SatelliteState[];
+  /** Design-time satellite list (plane membership) — a separate array from the per-instant `satellites` above, since plane_id isn't part of the computed snapshot. */
+  satelliteDesigns: Satellite[];
   groundSites: GroundSite[];
   snapshot: Snapshot;
   route: Route | null;
+  /** Sun's Earth-fixed direction at the displayed instant, for the eclipse row; omitted while unavailable. */
+  sunEcef?: Vec3 | null;
   onClose: () => void;
 }
 
-export function NodeDetailsCard({ target, satellites, groundSites, snapshot, route, onClose }: NodeDetailsCardProps) {
+export function NodeDetailsCard({
+  target,
+  satellites,
+  satelliteDesigns,
+  groundSites,
+  snapshot,
+  route,
+  sunEcef,
+  onClose,
+}: NodeDetailsCardProps) {
   if (target.kind === "satellite") {
     const sat = satellites.find((s) => s.id === target.id);
     if (!sat) return null;
+    const planeId = satelliteDesigns.find((s) => s.id === target.id)?.plane_id;
+    const eclipsed = sunEcef ? isEclipsed(sunEcef, { x: sat.x_km, y: sat.y_km, z: sat.z_km }) : null;
     return (
       <div className={styles.card}>
         <div className={styles.header}>
@@ -24,6 +41,10 @@ export function NodeDetailsCard({ target, satellites, groundSites, snapshot, rou
         </div>
         <div className={styles.rows}>
           <Row label="Состояние" value={sat.active ? "активен" : "неактивен"} tone={sat.active ? "ok" : "bad"} />
+          <Row label="Плоскость" value={planeId ?? "—"} />
+          {eclipsed !== null && (
+            <Row label="Солнце" value={eclipsed ? "в тени Земли" : "освещён"} tone={eclipsed ? "bad" : "ok"} />
+          )}
           <Row label="X, км" value={sat.x_km.toFixed(0)} />
           <Row label="Y, км" value={sat.y_km.toFixed(0)} />
           <Row label="Z, км" value={sat.z_km.toFixed(0)} />

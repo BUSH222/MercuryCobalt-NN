@@ -33,12 +33,13 @@ export function VariantComparison() {
       cols.push({
         id: "__current__",
         name: "Текущий (не сохранён)",
-        summaryLines: summarizeVariant(baseline, {
+        summaryLines: summarizeVariant({
           id: "__current__",
           name: "",
           created_at: "",
           overrides,
           effective_scenario: effectiveScenario,
+          baseline,
           metrics: series.metrics,
         }),
         conditionFlags: classifyScenarioConditions(effectiveScenario),
@@ -47,10 +48,17 @@ export function VariantComparison() {
       });
     }
     for (const variant of variants) {
+      // Variants can come from a different source file than the one
+      // currently loaded (see "Загрузить другой сценарий") — flag that up
+      // front so a mismatched comparison doesn't read as a same-scenario one.
+      const fromOtherScenario = baseline && variant.baseline.meta.id !== baseline.meta.id;
       cols.push({
         id: variant.id,
         name: variant.name,
-        summaryLines: baseline ? summarizeVariant(baseline, variant) : [],
+        summaryLines: [
+          ...(fromOtherScenario ? [`Из сценария: ${variant.baseline.meta.title}`] : []),
+          ...summarizeVariant(variant),
+        ],
         conditionFlags: classifyScenarioConditions(variant.effective_scenario),
         metricsByClient: metricsMap(variant.metrics),
         removable: true,

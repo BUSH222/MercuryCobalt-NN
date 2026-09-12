@@ -12,7 +12,7 @@ import type { Feature, MultiPolygon, Position } from "geojson";
 import type { Vec3 } from "./geometry";
 import { isNight } from "./sun";
 
-const DEFAULT_STEP_DEG = 8;
+const DEFAULT_STEP_DEG = 2;
 
 /**
  * d3-geo/GeoJSON spherical rings wind clockwise-as-plotted in lon/lat
