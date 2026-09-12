@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { selectClient as selectClientAction, setTimeIndex as setTimeIndexAction } from "../../store/scenarioSlice";
 import { useUiStore } from "../../store/useUiStore";
+import { DEFAULT_SIM_DATE } from "../../domain";
+import { sunDirectionEci, sunDirectionEcefAt } from "../../utils/sun";
 
 /**
  * Shared read model for both map projections: the current snapshot and route
@@ -15,6 +17,7 @@ export function useMapViewData() {
   const series = useAppSelector((s) => s.scenario.series);
   const timeIndex = useAppSelector((s) => s.scenario.timeIndex);
   const selectedClientId = useAppSelector((s) => s.scenario.selectedClientId);
+  const simDate = useAppSelector((s) => s.scenario.overrides.sim_date ?? DEFAULT_SIM_DATE);
   const showAllIsl = useUiStore((s) => s.showAllIsl);
   const setShowAllIsl = useUiStore((s) => s.setShowAllIsl);
   const timeUnit = useUiStore((s) => s.timeUnit);
@@ -40,6 +43,18 @@ export function useMapViewData() {
 
   const routeNodeIds = useMemo(() => new Set(route?.path ?? []), [route]);
 
+  // The Sun's Earth-fixed direction at the currently displayed instant, for
+  // the terminator overlay — recomputed only when the date, the scenario's
+  // earth_angle0_deg, or the displayed instant actually changes, not on
+  // every render while scrubbing through an unrelated prop update.
+  const earthAngle0Deg = scenario?.environment.earth_angle0_deg;
+  const snapshotT = snapshot?.t_s;
+  const sunEcef = useMemo(() => {
+    if (earthAngle0Deg === undefined || snapshotT === undefined) return null;
+    const uEci = sunDirectionEci(simDate, earthAngle0Deg);
+    return sunDirectionEcefAt(uEci, earthAngle0Deg, snapshotT);
+  }, [simDate, earthAngle0Deg, snapshotT]);
+
   return {
     scenario,
     series,
@@ -57,5 +72,6 @@ export function useMapViewData() {
     showAllIsl,
     setShowAllIsl,
     timeUnit,
+    sunEcef,
   };
 }

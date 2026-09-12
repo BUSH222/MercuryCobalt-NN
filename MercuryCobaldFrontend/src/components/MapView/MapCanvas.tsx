@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { geoGraticule10, geoPath, type GeoProjection } from "d3-geo";
 import type { Feature, LineString } from "geojson";
 import type { GroundSite, IslEdge, SatelliteState } from "../../domain";
+import type { Vec3 } from "../../utils/geometry";
 import { LAND_FEATURES, NORTHERN_PARALLELS_DEG, parallelCircle } from "../../utils/mapProjections";
+import { buildNightFeature } from "../../utils/terminator";
 import styles from "./MapCanvas.module.css";
 
 export interface MapClickTarget {
@@ -23,6 +25,8 @@ interface MapCanvasProps {
   showParallels?: boolean;
   selectedNodeId: string | null;
   onSelectNode: (target: MapClickTarget) => void;
+  /** Sun's Earth-fixed direction at the displayed instant, for the night-side terminator shading; omitted while unavailable. */
+  sunEcef?: Vec3 | null;
 }
 
 function lineFeature(a: [number, number], b: [number, number]): Feature<LineString> {
@@ -42,6 +46,7 @@ export function MapCanvas({
   showParallels,
   selectedNodeId,
   onSelectNode,
+  sunEcef,
 }: MapCanvasProps) {
   const pathGen = useMemo(() => geoPath(projection), [projection]);
 
@@ -58,11 +63,16 @@ export function MapCanvas({
 
   const graticuleD = useMemo(() => pathGen(geoGraticule10()) ?? undefined, [pathGen]);
   const landD = useMemo(() => pathGen(LAND_FEATURES) ?? undefined, [pathGen]);
+  const nightD = useMemo(
+    () => (sunEcef ? (pathGen(buildNightFeature(sunEcef)) ?? undefined) : undefined),
+    [pathGen, sunEcef],
+  );
 
   return (
     <svg className={styles.svg} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Карта группировки">
       <path className={styles.land} d={landD} />
       <path className={styles.graticule} d={graticuleD} />
+      {nightD && <path className={styles.night} d={nightD} />}
 
       {showParallels &&
         NORTHERN_PARALLELS_DEG.map((lat) => {

@@ -18,6 +18,7 @@ import { ScenarioSummary } from "../../features/configuration-editor/ScenarioSum
 import { LaunchStageControl } from "../../features/configuration-editor/LaunchStageControl";
 import { PlanesEditor } from "../../features/configuration-editor/PlanesEditor";
 import { FailuresEditor } from "../../features/configuration-editor/FailuresEditor";
+import { ShadowAutoFailures } from "../../features/configuration-editor/ShadowAutoFailures";
 import { ActionButtons } from "../../features/configuration-editor/ActionButtons";
 import { CoverageOptimizer } from "../../features/configuration-editor/CoverageOptimizer";
 import type { LaunchStage } from "../../domain";
@@ -88,6 +89,7 @@ export function Sidebar() {
                 onAdd={(failure) => dispatch(addFailure(failure))}
                 onRemove={(index) => dispatch(removeFailure(index))}
               />
+              <ShadowAutoFailures />
             </Section>
             <Section title="Действия">
               <ActionButtons

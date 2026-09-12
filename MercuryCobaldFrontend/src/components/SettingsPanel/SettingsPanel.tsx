@@ -3,6 +3,9 @@ import { Toggle } from "../common/Toggle";
 import { Chip } from "../common/Chip";
 import { useUiStore } from "../../store/useUiStore";
 import { useTerrainStore } from "../../store/useTerrainStore";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setSimDate } from "../../store/scenarioSlice";
+import { DEFAULT_SIM_DATE } from "../../domain";
 import { EnvironmentSettings } from "./EnvironmentSettings";
 import styles from "./SettingsPanel.module.css";
 
@@ -25,6 +28,8 @@ export function SettingsPanel() {
   const setEarthModel = useUiStore((s) => s.setEarthModel);
   const terrainStatus = useTerrainStore((s) => s.status);
   const terrainError = useTerrainStore((s) => s.error);
+  const dispatch = useAppDispatch();
+  const simDate = useAppSelector((s) => s.scenario.overrides.sim_date ?? DEFAULT_SIM_DATE);
 
   if (!open) return null;
 
@@ -55,6 +60,25 @@ export function SettingsPanel() {
         {earthModel === "advanced" && terrainStatus === "error" && (
           <span className={styles.error}>Не удалось загрузить рельеф: {terrainError}</span>
         )}
+      </div>
+
+      <div className={styles.group}>
+        <span className={styles.groupTitle}>Солнце и терминатор</span>
+        <span className={styles.hint}>
+          Дата начала симуляции (00:00 UTC) — определяет склонение Солнца для линии терминатора на карте и для
+          автоматических отказов спутников в тени Земли. Не влияет на орбитальную механику. По умолчанию — летнее
+          солнцестояние 2026 года, дающее самый выразительный полярный день/ночь для северных пунктов. Часть
+          конфигурации варианта — сохраняется и сравнивается вместе с остальными параметрами.
+        </span>
+        <label className={styles.assumptionRow}>
+          <span>Дата начала симуляции</span>
+          <input
+            type="date"
+            className={styles.assumptionInput}
+            value={simDate}
+            onChange={(e) => e.target.value && dispatch(setSimDate(e.target.value))}
+          />
+        </label>
       </div>
 
       <div className={styles.group}>

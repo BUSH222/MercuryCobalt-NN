@@ -52,3 +52,7 @@
   color: var(--text-0);
   text-align: right;
 }
+
+.assumptionInput[type="date"] {
+  width: 150px;
+}

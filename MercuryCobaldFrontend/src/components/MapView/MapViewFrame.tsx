@@ -32,6 +32,7 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
     showAllIsl,
     setShowAllIsl,
     timeUnit,
+    sunEcef,
   } = useMapViewData();
   const [selectedNode, setSelectedNode] = useState<MapClickTarget | null>(null);
 
@@ -89,6 +90,7 @@ export function MapViewFrame({ width, height, projection, showParallels }: MapVi
           showParallels={showParallels}
           selectedNodeId={selectedNode?.id ?? null}
           onSelectNode={setSelectedNode}
+          sunEcef={sunEcef}
         />
 
         <Legend showAllIsl={showAllIsl} />

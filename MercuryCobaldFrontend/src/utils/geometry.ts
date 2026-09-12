@@ -15,7 +15,7 @@ import type {
   Snapshot,
 } from "../domain";
 
-const EARTH_RADIUS_KM = 6371;
+export const EARTH_RADIUS_KM = 6371;
 const MU_KM3_S2 = 398600.435507;
 const EARTH_ROTATION_PERIOD_S = 86164.09054;
 
@@ -77,6 +77,23 @@ export function eciToEcef(pos: Vec3, earthAngle0Deg: number, tS: number): Vec3 {
   return {
     x: cosT * pos.x + sinT * pos.y,
     y: -sinT * pos.x + cosT * pos.y,
+    z: pos.z,
+  };
+}
+
+/**
+ * Rotates an Earth-fixed position back into the inertial frame at time t_s —
+ * the exact inverse of `eciToEcef` (same rotation matrix, transposed). Used
+ * to seed the Sun model's fixed inertial direction from a subsolar point
+ * computed directly in the Earth-fixed frame at t_s=0 (see `utils/sun.ts`).
+ */
+export function ecefToEci(pos: Vec3, earthAngle0Deg: number, tS: number): Vec3 {
+  const theta = deg2rad(earthAngle0Deg) + (2 * Math.PI * tS) / EARTH_ROTATION_PERIOD_S;
+  const cosT = Math.cos(theta);
+  const sinT = Math.sin(theta);
+  return {
+    x: cosT * pos.x - sinT * pos.y,
+    y: sinT * pos.x + cosT * pos.y,
     z: pos.z,
   };
 }

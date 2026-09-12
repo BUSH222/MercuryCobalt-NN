@@ -16,7 +16,20 @@ export interface ConfigOverrides {
    * "Запустить расчёт" cycle like every other override.
    */
   environment_overrides: Partial<Environment>;
+  /**
+   * Simulation start date ("YYYY-MM-DD", always 00:00 UTC) feeding the Sun
+   * model — the terminator overlay and satellite eclipse detection. Doesn't
+   * touch orbital mechanics (RAAN/phase/launch_stage are computed
+   * independently of it) or `effective_scenario`, so changing it never
+   * requires a recompute — but it does change the computed eclipse
+   * failures, so it lives here (saved and diffed per variant) rather than as
+   * a global UI preference like `earthModel`.
+   */
+  sim_date: string;
 }
+
+/** Summer solstice 2026 — maximum Sun declination, the most legible polar day/night demo. */
+export const DEFAULT_SIM_DATE = "2026-06-22";
 
 /** A saved, named configuration + its computed metrics, kept for comparison. */
 export interface SavedVariant {
@@ -34,5 +47,6 @@ export function createDefaultOverrides(launchStage: LaunchStage): ConfigOverride
     plane_overrides: {},
     added_failures: [],
     environment_overrides: {},
+    sim_date: DEFAULT_SIM_DATE,
   };
 }

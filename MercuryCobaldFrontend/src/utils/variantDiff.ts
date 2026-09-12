@@ -1,4 +1,5 @@
 import type { Scenario, SavedVariant } from "../domain";
+import { DEFAULT_SIM_DATE } from "../domain";
 
 /** Human-readable summary of what a saved variant changed relative to the originally loaded scenario. */
 export function summarizeVariant(baseline: Scenario, variant: SavedVariant): string[] {
@@ -12,6 +13,9 @@ export function summarizeVariant(baseline: Scenario, variant: SavedVariant): str
   }
   if (variant.overrides.added_failures.length > 0) {
     lines.push(`Добавлено отказов: ${variant.overrides.added_failures.length}`);
+  }
+  if ((variant.overrides.sim_date ?? DEFAULT_SIM_DATE) !== DEFAULT_SIM_DATE) {
+    lines.push(`Дата симуляции: ${variant.overrides.sim_date}`);
   }
   if (lines.length === 0) lines.push("Без изменений относительно исходного сценария");
   return lines;

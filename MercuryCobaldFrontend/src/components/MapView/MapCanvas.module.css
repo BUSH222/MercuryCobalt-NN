@@ -17,6 +17,13 @@
   stroke-width: 0.4;
 }
 
+.night {
+  fill: #00040c;
+  opacity: 0.55;
+  stroke: none;
+  pointer-events: none;
+}
+
 .parallel {
   fill: none;
   stroke: #33455e;

@@ -2,6 +2,7 @@ import { Modal } from "../common/Modal";
 import { useUiStore } from "../../store/useUiStore";
 import { useAppSelector } from "../../store/hooks";
 import { ExportScenarioRow } from "./ExportScenarioRow";
+import { ResultExportSection } from "./ResultExportSection";
 import styles from "./SettingsPanel.module.css";
 
 /**
@@ -47,6 +48,8 @@ export function ExportPanel() {
           </div>
         )}
       </div>
+
+      <ResultExportSection />
     </Modal>
   );
 }
