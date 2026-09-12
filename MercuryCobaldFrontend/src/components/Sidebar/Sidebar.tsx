@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   addFailure,
   removeFailure,
-  resetAll,
   resetToBaseline,
   runComputation,
   saveVariant,
@@ -27,25 +26,11 @@ export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
 
-<<<<<<< Updated upstream
-  const effectiveScenario = useScenarioStore((s) => s.effectiveScenario);
-  const overrides = useScenarioStore((s) => s.overrides);
-  const computing = useScenarioStore((s) => s.computing);
-  const variantCount = useScenarioStore((s) => s.variants.length);
-  const setLaunchStage = useScenarioStore((s) => s.setLaunchStage);
-  const updatePlane = useScenarioStore((s) => s.updatePlane);
-  const addFailure = useScenarioStore((s) => s.addFailure);
-  const removeFailure = useScenarioStore((s) => s.removeFailure);
-  const runComputation = useScenarioStore((s) => s.runComputation);
-  const saveVariant = useScenarioStore((s) => s.saveVariant);
-  const resetToBaseline = useScenarioStore((s) => s.resetToBaseline);
-=======
   const dispatch = useAppDispatch();
   const effectiveScenario = useAppSelector((s) => s.scenario.effectiveScenario);
   const overrides = useAppSelector((s) => s.scenario.overrides);
   const computing = useAppSelector((s) => s.scenario.computing);
   const variantCount = useAppSelector((s) => s.scenario.variants.length);
->>>>>>> Stashed changes
 
   if (collapsed) {
     return (
@@ -98,33 +83,18 @@ export function Sidebar() {
               <FailuresEditor
                 satellites={effectiveScenario.design.satellites}
                 environment={effectiveScenario.environment}
-<<<<<<< Updated upstream
                 failures={overrides.added_failures}
-                onAdd={addFailure}
-                onRemove={removeFailure}
-=======
-                failures={overrides.failures}
                 onAdd={(failure) => dispatch(addFailure(failure))}
                 onRemove={(index) => dispatch(removeFailure(index))}
->>>>>>> Stashed changes
               />
             </Section>
             <Section title="Действия">
               <ActionButtons
                 computing={computing}
-<<<<<<< Updated upstream
-                variantCount={variantCount}
-                onRunComputation={() => void runComputation()}
-                onSaveVariant={saveVariant}
-                onReset={() => void resetToBaseline()}
-=======
-                scenarioTitle={effectiveScenario.meta.title}
                 variantCount={variantCount}
                 onRunComputation={() => void dispatch(runComputation())}
                 onSaveVariant={(name) => dispatch(saveVariant({ name }))}
                 onReset={() => void dispatch(resetToBaseline())}
-                onResetAll={() => dispatch(resetAll())}
->>>>>>> Stashed changes
               />
             </Section>
           </>

@@ -99,7 +99,7 @@ const scenarioSlice = createSlice({
   reducers: {
     scenarioLoaded(state, action: PayloadAction<Scenario>) {
       const scenario = action.payload;
-      const overrides = createDefaultOverrides(scenario.design.launch_stage, scenario.failures);
+      const overrides = createDefaultOverrides(scenario.design.launch_stage);
       state.baseline = scenario;
       state.overrides = overrides;
       state.effectiveScenario = buildEffectiveScenario(scenario, overrides);
@@ -129,17 +129,17 @@ const scenarioSlice = createSlice({
     },
     addFailure(state, action: PayloadAction<SatelliteFailure>) {
       if (!state.baseline) return;
-      state.overrides.failures.push(action.payload);
+      state.overrides.added_failures.push(action.payload);
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
     removeFailure(state, action: PayloadAction<number>) {
       if (!state.baseline) return;
-      state.overrides.failures.splice(action.payload, 1);
+      state.overrides.added_failures.splice(action.payload, 1);
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
     resetToBaselineSync(state) {
       if (!state.baseline) return;
-      state.overrides = createDefaultOverrides(state.baseline.design.launch_stage, state.baseline.failures);
+      state.overrides = createDefaultOverrides(state.baseline.design.launch_stage);
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
     saveVariant(state, action: PayloadAction<{ name: string }>) {
