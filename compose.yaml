@@ -1,0 +1,25 @@
+services:
+  web:
+    image: mercury-cobalt:${IMAGE_TAG:-local}
+    build:
+      context: .
+      args:
+        NODE_BUILD_HEAP_MB: ${NODE_BUILD_HEAP_MB:-1024}
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: ${MEMORY_LIMIT:-128m}
+    memswap_limit: ${MEMORY_LIMIT:-128m}
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
