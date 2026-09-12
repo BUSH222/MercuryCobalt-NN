@@ -1,135 +1,114 @@
 # Mercury Cobalt
 
-React/TypeScript application in `MercuryCobaldFrontend`. Computation and saved
-scenarios live in the browser. The one exception is the optional "Advanced
-(terrain, WGS84)" earth model: it calls a small FastAPI proxy (`terrain_api/`,
-`main.py`) that fetches and caches real elevation data from OpenTopography —
-see `MercuryCobaldFrontend/HOW_IT_WORKS.md` for how it fits together. Nothing
-else in the app makes a network call.
+Планировщик устойчивости спутниковой группировки — веб-приложение для кейса
+«Проектирование устойчивой спутниковой группировки» (**КосмоХакатон 2026**).
+Позволяет загрузить сценарий группировки, настроить его (очередь запуска,
+фазирование плоскостей, отказы спутников), рассчитать доступность связи между
+наземными пунктами и шлюзом и сравнить несколько вариантов конфигурации между
+собой — всё в браузере, без бэкенда для основной логики.
 
-## Deploy with Docker
+## Ключевые фичи
 
-Install Docker Engine with the Compose v2 plugin (or Docker Desktop using Linux
-containers). From the repository root:
+- **Расчёт полностью в браузере.** Орбитальная механика, видимость спутников,
+  маршрутизация (BFS по графу межспутниковых связей) — весь пайплайн на
+  TypeScript, по формулам из ТЗ. Бэкенд не нужен, кроме одной опциональной
+  фичи ниже.
+- **Подбор конфигурации на покрытие.** Двухэтапный поиск (дешёвый скрининг по
+  видимости → точный пересчёт с полной маршрутизацией) находит интервал RAAN и
+  фазовый сдвиг между орбитальными плоскостями, максимизирующие **худшую**
+  доступность среди наземных пунктов — не среднюю.
+- **Продвинутая видимость по реальному рельефу (WGS84).** Вместо сферической
+  Земли и одного порога угла места — настоящий локальный горизонт вокруг
+  каждого наземного пункта, построенный трассировкой лучей по DEM
+  (Copernicus COP30 через OpenTopography). Единственная фича, которая ходит в
+  сеть — за ней отдельный лёгкий FastAPI-прокси.
+- **3D-глобус и 2D-карты.** Равнопрямоугольная и полярная азимутальная
+  проекции плюс вращаемый 3D-глобус (three.js) с зонами покрытия и конусами
+  видимости — один и тот же набор данных, три способа его посмотреть.
+- **Сравнение вариантов.** Сохранённые конфигурации сравниваются в таблице по
+  тем же метрикам, что и панель статистики (доступность, перерывы, RTT,
+  джиттер, handover'ы), с пометкой «штатный» / «стресс-тест».
+- **Гибкая раскладка виджетов.** Нижняя панель — не вкладки, а набор
+  переключаемых виджетов с перетаскиваемыми границами: любая комбинация карт,
+  статистики, маршрута и сравнения на экране одновременно.
+- **Диагностика маршрута и разрывов.** Диаграмма доступности с привязкой
+  каждого разрыва к вызвавшему его отказу, пошаговый разбор маршрута
+  клиент → спутники → шлюз с явной причиной, если маршрута нет.
+- **Экспорт и локальное сохранение.** Любой сценарий (текущий или сохранённый
+  вариант) выгружается в исходном формате `cosmo-A-1.0`; конфигурация и
+  сравнения переживают перезагрузку страницы (Redux + `redux-persist`).
+- **Продакшн-контейнер из коробки.** Один `docker compose up` поднимает
+  hardened Nginx-контейнер (non-root, read-only rootfs, health-check) и
+  опциональный terrain-бэкенд отдельным сервисом.
+
+## Структура репозитория
+
+```
+cosmohack/
+├── MercuryCobalt-NN/              — приложение целиком
+│   ├── MercuryCobaldFrontend/     — React/TypeScript SPA (вся основная логика)
+│   ├── terrain_api/               — FastAPI-прокси для рельефа (OpenTopography)
+│   ├── main.py                    — точка входа terrain-бэкенда
+│   ├── compose.yaml, Dockerfile   — продакшн-деплой (frontend + terrain)
+│   └── README.md                  — подробности деплоя и обновления зависимостей
+└── MercuryGlobal/
+    └── docs/                      — документация проекта (архитектура, фичи, данные)
+```
+
+## Быстрый старт
+
+### Через Docker (рекомендуется)
+
+Нужен только Docker Engine с плагином Compose v2 (или Docker Desktop).
 
 ```sh
+cd MercuryCobalt-NN
 docker compose up -d --build --wait
 ```
 
-Open http://localhost:8080 (or your server's address on port 8080). No local Node,
-Python, dependency installation, or configuration file is required. The first
-build needs internet access to download images and npm packages.
+Открыть `http://localhost:8080`. Локальный Node/Python и файл конфигурации не
+нужны — сборка тянет зависимости сама. Подробности (обновление образов,
+откат, ограничения ресурсов) — в [MercuryCobalt-NN/README.md](MercuryCobalt-NN/README.md).
+
+### Локальная разработка
 
 ```sh
-docker compose ps
-docker compose logs --tail=100 web
-docker stats --no-stream
-docker compose down
-```
-
-For public HTTPS, route your TLS reverse proxy to port 8080; this container
-serves HTTP. Optionally copy `.env.example` to `.env` to change the port, bind
-address, image tag, memory limit, or build heap allowance. Defaults work without
-that file. For a proxy running directly on the host, `BIND_ADDRESS=127.0.0.1`
-restricts direct access.
-
-## Dependencies and updates
-
-The image installs dependencies using **`npm i`**, then runs `npm run build`.
-Both `package.json` and `package-lock.json` participate in the dependency cache;
-changes to either trigger installation. Source changes trigger compilation.
-The lockfile remains an input to `npm i`; installation does not force every
-package to its latest release or write changes back into your checkout.
-
-When editing dependencies locally, run `npm i` in `MercuryCobaldFrontend` and
-commit both manifests together. Rebuild to deploy source or package changes:
-
-```sh
-git pull --ff-only
-docker compose build --pull
-docker compose up -d --wait
-```
-
-Building separately keeps the running container in place if compilation fails.
-The replacement has a brief interruption; this is not a rolling deployment.
-To force installation, use `docker compose build --pull --no-cache`.
-Base image tags track Node 24 and stable Nginx; `--pull` fetches their updates.
-For audited releases, pin base image digests and retain a tested release image.
-The Docker deployment GitHub Actions workflow builds and smoke-tests the image
-on pushes and pull requests, including health, SPA routing, and cache headers.
-
-Before replacing a known-good deployment, preserve its image:
-
-```sh
-docker image tag mercury-cobalt:local mercury-cobalt:previous
-```
-
-To roll back, set `IMAGE_TAG=previous` in `.env` and run:
-
-```sh
-docker compose up -d --no-build --pull never --wait
-```
-
-Use the actual current tag instead of `local` if customized. Restore
-`IMAGE_TAG=local` before the next normal build; retain the rollback image until
-the new deployment is verified. Saved scenarios remain in browser storage
-across replacements; keep the same browser origin (scheme, hostname, and port).
-Already-open tabs may need refreshing if they request an old lazy-loaded chunk.
-HTML revalidates on navigation; fingerprinted assets are cached for a year.
-
-## Resource use and isolation
-
-Only Nginx and compiled static files ship in the runtime image. Nginx uses one
-worker, a 128 MB container memory ceiling, no additional swap allowance, and a
-16 MB temporary filesystem. Logs rotate at 10 MB with three files retained.
-These are limits, not measured RAM requirements or a performance guarantee.
-
-Compilation needs more RAM than serving: allow approximately 2 GB on the build
-host as a starting point and measure for your workload. `NODE_BUILD_HEAP_MB`
-defaults to 1024 and caps only the JavaScript heap, not total build memory.
-The runtime memory limit does not constrain image builds. For a small server,
-build elsewhere and transfer/publish the image. Browser simulation and 3D
-rendering still depend on the user's device.
-
-The runtime uses a non-root user, read-only root filesystem, dropped Linux
-capabilities, and disabled privilege escalation. Temporary files go to `/tmp`.
-`/healthz` supplies the container health check. The restart policy handles
-process exits and host restarts; unhealthy status alone does not restart a
-container. See the [Compose service reference](https://docs.docker.com/reference/compose-file/services/)
-for these resource and isolation settings.
-
-The terrain backend is deployed separately, per the pattern above: a second
-`terrain` container (same `Dockerfile`, `target: backend`), reachable by the
-frontend only through nginx's `/api/` proxy — it has no host-mapped port of
-its own. It boots and serves `/healthz` without any secret configured; only
-`GET /api/terrain` needs `OPENTOPOGRAPHY_API_KEY` (get a free key at
-opentopography.org), supplied via `.env`/environment at deploy time, never
-baked into the image or committed. Its on-disk cache lives in the
-`terrain_cache` named volume, so it survives container recreation. Environment
-files are excluded from the build context. Future Vite variables must be wired
-in at build time and are public browser configuration, never secrets.
-
-## Local development
-
-```sh
-cd MercuryCobaldFrontend
+cd MercuryCobalt-NN/MercuryCobaldFrontend
 npm i
 npm run dev
 ```
 
-Use Node 24. Root Python tooling uses uv, Ruff, and ty; `sh setup.sh` installs
-its pre-commit hooks.
+Требуется Node 24. Этого достаточно для всех фич, кроме «Продвинутой»
+видимости по рельефу.
 
-To also use the "Advanced (terrain, WGS84)" earth model locally (optional —
-every other feature works without it), run the terrain backend alongside the
-frontend:
+Чтобы включить и её, дополнительно поднять terrain-бэкенд из корня
+`MercuryCobalt-NN` (нужен [uv](https://docs.astral.sh/uv/)):
 
 ```sh
 uv run uvicorn main:app --reload --port 8000
 ```
 
-Vite's dev server proxies `/api/*` to `http://127.0.0.1:8000` (see
-`vite.config.ts`), so the frontend needs no configuration either way. Put
-`OPENTOPOGRAPHY_API_KEY=...` in a `.env` file at the repository root (see
-`.env.example`) — without it the backend still runs, and only switching to
-advanced mode in Settings surfaces a clear error.
+Vite-дев-сервер сам проксирует `/api/*` на `http://127.0.0.1:8000`. Ключ
+`OPENTOPOGRAPHY_API_KEY` (бесплатно на [opentopography.org](https://opentopography.org/))
+кладётся в `.env` в корне `MercuryCobalt-NN` — без него всё остальное всё
+равно работает, ошибка появится только при включении продвинутого режима.
+
+## Документация
+
+- [MercuryGlobal/docs/](MercuryGlobal/docs/README.md) — архитектура, формат
+  данных, алгоритмы и разбор всех фич проекта.
+- [MercuryCobalt-NN/MercuryCobaldFrontend/HOW_IT_WORKS.md](MercuryCobalt-NN/MercuryCobaldFrontend/HOW_IT_WORKS.md) —
+  максимально подробный построчный разбор устройства фронтенда.
+- [MercuryCobalt-NN/README.md](MercuryCobalt-NN/README.md) — деплой,
+  обновление зависимостей, ресурсы и изоляция контейнеров.
+
+## Стек
+
+React 19 + TypeScript, Vite, Redux Toolkit (`redux-persist`) + Zustand,
+`d3-geo` (2D-карты), `three.js` / `@react-three/fiber` (3D-глобус) — фронтенд;
+FastAPI + `rasterio` (Python 3.14, `uv`) — опциональный terrain-бэкенд;
+Nginx + Docker Compose — деплой.
+
+## Лицензия
+
+MIT, см. [MercuryCobalt-NN/LICENSE](MercuryCobalt-NN/LICENSE).
