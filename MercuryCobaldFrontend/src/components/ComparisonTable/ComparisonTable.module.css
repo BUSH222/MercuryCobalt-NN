@@ -1,0 +1,88 @@
+.wrap {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 520px;
+}
+
+.table th,
+.table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.rowLabelCell {
+  color: var(--text-1);
+  position: sticky;
+  left: 0;
+  background: var(--bg-1);
+}
+
+.columnHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.columnName {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+.diffLines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 400;
+  font-size: 10.5px;
+  color: var(--text-2);
+  white-space: normal;
+}
+
+.groupRow td {
+  background: var(--bg-2);
+  font-weight: 700;
+  color: var(--text-1);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pass {
+  color: var(--accent-strong);
+}
+
+.fail {
+  color: var(--danger);
+}
+
+.conditionNominal,
+.conditionStress {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: normal;
+}
+
+.conditionNominal {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.conditionStress {
+  background: rgba(232, 185, 79, 0.18);
+  color: var(--warning);
+}
