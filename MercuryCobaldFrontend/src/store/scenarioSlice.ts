@@ -17,6 +17,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import type {
   ConfigOverrides,
   CoverageCandidate,
+  Environment,
   GroundSite,
   LaunchStage,
   SatelliteFailure,
@@ -137,6 +138,11 @@ const scenarioSlice = createSlice({
       state.overrides.added_failures.splice(action.payload, 1);
       state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
     },
+    updateEnvironment(state, action: PayloadAction<Environment>) {
+      if (!state.baseline) return;
+      state.overrides.environment_overrides = action.payload;
+      state.effectiveScenario = buildEffectiveScenario(state.baseline, state.overrides);
+    },
     resetToBaselineSync(state) {
       if (!state.baseline) return;
       state.overrides = createDefaultOverrides(state.baseline.design.launch_stage);
@@ -236,6 +242,7 @@ export const {
   updatePlane,
   addFailure,
   removeFailure,
+  updateEnvironment,
   saveVariant,
   removeVariant,
   selectClient,

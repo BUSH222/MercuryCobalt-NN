@@ -1,15 +1,16 @@
 /**
  * Merges user-made configuration overrides (launch stage, per-plane RAAN/phase,
- * added failures) onto the originally loaded scenario, producing the
- * "effective scenario" that every computation and export operates on. Keeping
- * this as a pure function means undo ("Сбросить") is simply dropping the
- * overrides object.
+ * added failures, environment parameters) onto the originally loaded scenario,
+ * producing the "effective scenario" that every computation and export
+ * operates on. Keeping this as a pure function means undo ("Сбросить") is
+ * simply dropping the overrides object.
  */
 import type { ConfigOverrides, Scenario } from "../domain";
 
 export function buildEffectiveScenario(baseline: Scenario, overrides: ConfigOverrides): Scenario {
   return {
     ...baseline,
+    environment: { ...baseline.environment, ...overrides.environment_overrides },
     design: {
       ...baseline.design,
       launch_stage: overrides.launch_stage,

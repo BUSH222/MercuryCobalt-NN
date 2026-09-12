@@ -2,17 +2,14 @@ import { Modal } from "../common/Modal";
 import { Toggle } from "../common/Toggle";
 import { Chip } from "../common/Chip";
 import { useUiStore } from "../../store/useUiStore";
-import { useAppSelector } from "../../store/hooks";
-import { ExportScenarioRow } from "./ExportScenarioRow";
+import { EnvironmentSettings } from "./EnvironmentSettings";
 import styles from "./SettingsPanel.module.css";
 
 /**
- * Saving/exporting lives entirely here, not in the sidebar — the sidebar's
- * "Сохранить вариант" only ever registers a named variant for the comparison
- * table. Every scenario the session currently has (the live, possibly
- * unsaved current one, plus every saved variant) is listed with its own
- * editable title/id and its own download button; there is no separate
- * "export the calculation result" option any more.
+ * Display preferences, RTT/FSPL assumptions, and the scenario's environment
+ * block. Exporting lives in its own separate modal (`ExportPanel`) — a
+ * different kind of action (download a file) from the ones here (tune a
+ * display setting, or commit an environment override to the live scenario).
  */
 export function SettingsPanel() {
   const open = useUiStore((s) => s.settingsOpen);
@@ -24,34 +21,11 @@ export function SettingsPanel() {
   const linkAssumptions = useUiStore((s) => s.linkAssumptions);
   const setLinkAssumptions = useUiStore((s) => s.setLinkAssumptions);
 
-  const effectiveScenario = useAppSelector((s) => s.scenario.effectiveScenario);
-  const variants = useAppSelector((s) => s.scenario.variants);
-
   if (!open) return null;
 
-  const exportEntries = [
-    ...(effectiveScenario ? [{ id: "__current__", label: "Текущий (не сохранён)", scenario: effectiveScenario }] : []),
-    ...variants.map((v) => ({ id: v.id, label: v.name, scenario: v.effective_scenario })),
-  ];
-
   return (
-    <Modal title="Настройки и экспорт" onClose={() => setOpen(false)}>
-      <div className={styles.group}>
-        <span className={styles.groupTitle}>Экспорт сценария</span>
-        <span className={styles.hint}>
-          Формат cosmo-A-1.0, готовый к повторной загрузке в сервис. Название и ID можно поменять перед скачиванием —
-          они попадут в файл как <code>meta.title</code>/<code>meta.id</code>.
-        </span>
-        {exportEntries.length === 0 ? (
-          <span className={styles.hint}>Загрузите сценарий, чтобы его можно было выгрузить.</span>
-        ) : (
-          <div className={styles.exportList}>
-            {exportEntries.map((entry) => (
-              <ExportScenarioRow key={entry.id} label={entry.label} scenario={entry.scenario} />
-            ))}
-          </div>
-        )}
-      </div>
+    <Modal title="Настройки" onClose={() => setOpen(false)}>
+      <EnvironmentSettings />
 
       <div className={styles.group}>
         <span className={styles.groupTitle}>Отображение</span>

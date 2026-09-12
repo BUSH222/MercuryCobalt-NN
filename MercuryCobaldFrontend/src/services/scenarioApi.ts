@@ -1,11 +1,3 @@
-/**
- * Data-access boundary for the whole app. Every call is async and returns the
- * same shapes a real backend would (validation errors keyed by field, a
- * computed SeriesResult, an export document) so that swapping the body of
- * each method for a `fetch(...)` call is the only change needed to attach a
- * real computation service later. For now every method is backed by the
- * client-side geometry engine in `utils/` plus an artificial network delay.
- */
 import type {
   ClientLinkSample,
   CoverageCandidate,

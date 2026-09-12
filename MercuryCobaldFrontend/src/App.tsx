@@ -3,6 +3,7 @@ import { Sidebar } from "./components/Sidebar/Sidebar";
 import { BottomBar } from "./components/BottomBar/BottomBar";
 import { PanelGrid } from "./components/Layout/PanelGrid";
 import { SettingsPanel } from "./components/SettingsPanel/SettingsPanel";
+import { ExportPanel } from "./components/SettingsPanel/ExportPanel";
 import { OnboardingTour } from "./components/Onboarding/OnboardingTour";
 import { useOnboardingStore } from "./store/useOnboardingStore";
 import { useAppSelector } from "./store/hooks";
@@ -29,6 +30,7 @@ function App() {
         <BottomBar />
       </div>
       <SettingsPanel />
+      <ExportPanel />
       <OnboardingTour />
     </div>
   );

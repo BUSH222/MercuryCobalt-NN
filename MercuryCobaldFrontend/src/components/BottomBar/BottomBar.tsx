@@ -7,6 +7,7 @@ export function BottomBar() {
   const openPanels = useUiStore((s) => s.openPanels);
   const togglePanel = useUiStore((s) => s.togglePanel);
   const setSettingsOpen = useUiStore((s) => s.setSettingsOpen);
+  const setExportOpen = useUiStore((s) => s.setExportOpen);
 
   return (
     <div className={styles.bar}>
@@ -22,7 +23,10 @@ export function BottomBar() {
           />
         ))}
       </div>
-      <IconButton icon="settings" title="Настройки и экспорт" onClick={() => setSettingsOpen(true)} />
+      <div className={styles.actions}>
+        <IconButton icon="download" title="Экспорт" onClick={() => setExportOpen(true)} />
+        <IconButton icon="settings" title="Настройки" onClick={() => setSettingsOpen(true)} />
+      </div>
     </div>
   );
 }

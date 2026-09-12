@@ -21,6 +21,7 @@ interface UiState {
   showAllIsl: boolean;
   timeUnit: TimeDisplayUnit;
   settingsOpen: boolean;
+  exportOpen: boolean;
   /** Display-tunable physics assumptions (frequency, per-hop delay, status thresholds); not part of the scenario schema. */
   linkAssumptions: LinkAssumptions;
   toggleSidebar: () => void;
@@ -30,6 +31,7 @@ interface UiState {
   setShowAllIsl: (show: boolean) => void;
   setTimeUnit: (unit: TimeDisplayUnit) => void;
   setSettingsOpen: (open: boolean) => void;
+  setExportOpen: (open: boolean) => void;
   setLinkAssumptions: (patch: Partial<LinkAssumptions>) => void;
 }
 
@@ -42,6 +44,7 @@ export const useUiStore = create<UiState>()(
       showAllIsl: false,
       timeUnit: "hms",
       settingsOpen: false,
+      exportOpen: false,
       linkAssumptions: DEFAULT_LINK_ASSUMPTIONS,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       togglePanel: (view) =>
@@ -57,6 +60,7 @@ export const useUiStore = create<UiState>()(
       setShowAllIsl: (show) => set({ showAllIsl: show }),
       setTimeUnit: (unit) => set({ timeUnit: unit }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
+      setExportOpen: (open) => set({ exportOpen: open }),
       setLinkAssumptions: (patch) => set((s) => ({ linkAssumptions: { ...s.linkAssumptions, ...patch } })),
     }),
     {
