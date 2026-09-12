@@ -48,7 +48,7 @@ export function CoverageOptimizer() {
         доступность связи в наихудшем по клиентам случае. Сначала дешёвая оценка по видимости, затем точный пересчёт
         маршрутов для лучших кандидатов.
       </span>
-      <Button icon="compass" disabled={searching} onClick={() => void dispatch(searchCoverage())}>
+      <Button icon="compass" loading={searching} onClick={() => void dispatch(searchCoverage())}>
         {searching ? "Идёт поиск…" : "Подобрать конфигурацию"}
       </Button>
       {error && <span className={styles.error}>{error}</span>}

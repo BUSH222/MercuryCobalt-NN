@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 export type IconName =
   | "globe"
+  | "globe-3d"
   | "compass"
   | "chart"
   | "compare"
@@ -32,6 +33,13 @@ const SHAPES: Record<IconName, ReactNode> = {
       <path d="M3.5 5.5 8.5 3l7 3.5L20.5 4v15l-5 2.5-7-3.5-5 2.5z" />
       <path d="M8.5 3v15" />
       <path d="M15.5 6.5v15" />
+    </>
+  ),
+  "globe-3d": (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a13 13 0 0 1 3.5 9 13 13 0 0 1-3.5 9 13 13 0 0 1-3.5-9A13 13 0 0 1 12 3Z" />
     </>
   ),
   compass: <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm3.5 5.5-2 5-5 2 2-5 5-2Z" />,

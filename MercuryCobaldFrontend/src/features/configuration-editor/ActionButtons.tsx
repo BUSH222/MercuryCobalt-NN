@@ -26,7 +26,7 @@ export function ActionButtons({
 
   return (
     <div className={styles.wrap}>
-      <Button variant="primary" icon="play" disabled={computing} onClick={onRunComputation}>
+      <Button variant="primary" icon="play" loading={computing} onClick={onRunComputation}>
         {computing ? "Идёт расчёт…" : "Запустить расчёт"}
       </Button>
 

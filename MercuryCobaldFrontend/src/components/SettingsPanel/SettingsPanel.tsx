@@ -45,6 +45,7 @@ export function SettingsPanel() {
           <Chip
             label="Продвинутая (рельеф, WGS84)"
             active={earthModel === "advanced"}
+            loading={earthModel === "advanced" && terrainStatus === "loading"}
             onClick={() => setEarthModel("advanced")}
           />
         </div>

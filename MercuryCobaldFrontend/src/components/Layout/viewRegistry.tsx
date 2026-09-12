@@ -24,7 +24,7 @@ export interface ViewDef {
 export const VIEW_DEFS: ViewDef[] = [
   { id: "map-equirect", label: "Карта (прямоугольная)", icon: "globe", render: () => <EquirectangularMap /> },
   { id: "map-polar", label: "Карта (полярная)", icon: "compass", render: () => <PolarMap /> },
-  { id: "map-3d", label: "Карта (3D)", icon: "globe", render: () => <LazyGlobeMap /> },
+  { id: "map-3d", label: "Карта (3D)", icon: "globe-3d", render: () => <LazyGlobeMap /> },
   { id: "stats", label: "Статистика", icon: "chart", render: () => <StatsView /> },
   { id: "compare", label: "Сравнение", icon: "compare", render: () => <VariantComparison /> },
   { id: "route", label: "Маршрут", icon: "route", render: () => <RouteDetails /> },
