@@ -8,6 +8,7 @@ import { OnboardingTour } from "./components/Onboarding/OnboardingTour";
 import { useOnboardingStore } from "./store/useOnboardingStore";
 import { useAppSelector } from "./store/hooks";
 import { useAdvancedTerrainSync } from "./terrain/useAdvancedTerrainSync";
+import { useRoutingAlgorithmSync } from "./store/useRoutingAlgorithmSync";
 import styles from "./App.module.css";
 
 function App() {
@@ -24,6 +25,9 @@ function App() {
   // Mounted here (not inside Settings) so the terrain fetch keeps running for
   // every ground site regardless of which panels are open — see the hook.
   useAdvancedTerrainSync();
+  // Same reasoning: changing the routing algorithm must recompute even if
+  // Settings gets closed right after — see the hook.
+  useRoutingAlgorithmSync();
 
   return (
     <div className={styles.shell}>

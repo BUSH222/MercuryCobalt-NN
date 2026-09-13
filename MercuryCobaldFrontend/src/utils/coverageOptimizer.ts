@@ -197,7 +197,10 @@ export async function searchCoverageConfigurations(
       let longestOutageSteps = 0;
       for (const t of fullGrid) {
         const snap = snapshotWithEarthModel(candidate, t, opts.earthModel);
-        const route = computeRoute(candidate, snap, client);
+        // Only route existence matters here (worst-case availability), never which
+        // specific path — so this always uses the cheapest strategy (unweighted BFS)
+        // regardless of the routing algorithm selected in Settings for the main view.
+        const route = computeRoute(candidate, snap, client, "fewest-hops");
         if (route.path.length > 0) {
           connectedCount++;
           currentOutageSteps = 0;

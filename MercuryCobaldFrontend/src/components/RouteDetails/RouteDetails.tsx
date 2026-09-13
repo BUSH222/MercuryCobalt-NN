@@ -1,8 +1,9 @@
 import { Icon } from "../common/Icon";
 import { TimeScrubber } from "../Timeline/TimeScrubber";
 import { useMapViewData } from "../../features/map-visualization/useMapViewData";
-import { NO_ROUTE_REASON_LABEL, type LinkStatus } from "../../domain";
+import { NO_ROUTE_REASON_LABEL, ROUTING_ALGORITHM_DESCRIPTION, ROUTING_ALGORITHM_LABEL, type LinkStatus } from "../../domain";
 import { useUiStore } from "../../store/useUiStore";
+import { RouteAlgorithmComparison } from "./RouteAlgorithmComparison";
 import styles from "./RouteDetails.module.css";
 
 const STATUS_LABEL: Record<LinkStatus, string> = {
@@ -18,10 +19,23 @@ const STATUS_CLASS: Record<LinkStatus, string> = {
 };
 
 export function RouteDetails() {
-  const { scenario, route, linkSample, clients, selectedClientId, selectClient, tGrid, timeIndex, setTimeIndex, timeUnit } =
-    useMapViewData();
+  const {
+    scenario,
+    snapshot,
+    route,
+    linkSample,
+    clients,
+    selectedClientId,
+    selectClient,
+    tGrid,
+    timeIndex,
+    setTimeIndex,
+    timeUnit,
+  } = useMapViewData();
   const timeUnitForDurations = useUiStore((s) => s.timeUnit);
   const earthModel = useUiStore((s) => s.earthModel);
+  const routingAlgorithm = useUiStore((s) => s.routingAlgorithm);
+  const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
 
   if (!scenario) {
     return (
@@ -53,10 +67,16 @@ export function RouteDetails() {
             </span>
           </div>
         )}
+        {route && (
+          <div className={styles.badgeRow}>
+            <span className={styles.hopBadge} title={ROUTING_ALGORITHM_DESCRIPTION[route.algorithm]}>
+              Построено по: {ROUTING_ALGORITHM_LABEL[route.algorithm]}
+            </span>
+          </div>
+        )}
         <div className={styles.note}>
-          Алгоритм: поиск в ширину (BFS) по графу активных ISL-связей — кратчайший по числу переходов маршрут от
-          клиентского пункта до ближайшего доступного шлюза. Маршрут пересчитывается на каждый отсчёт времени по
-          текущему составу связей. Если валидных маршрутов несколько, показан один из них — эталонного маршрута не
+          {route ? ROUTING_ALGORITHM_DESCRIPTION[route.algorithm] : "Алгоритм маршрутизации выбирается в «Настройках»."}{" "}
+          Маршрут пересчитывается на каждый отсчёт времени по текущему составу связей; эталонного маршрута не
           существует, важна лишь физическая допустимость показанного пути в данный момент.
         </div>
 
@@ -126,6 +146,18 @@ export function RouteDetails() {
               ))}
             </div>
           </>
+        )}
+
+        {scenario && snapshot && selectedClient && (
+          <div>
+            <span className={styles.comparisonHeading}>Что выдал бы каждый алгоритм сейчас</span>
+            <RouteAlgorithmComparison
+              scenario={scenario}
+              snapshot={snapshot}
+              client={selectedClient}
+              activeAlgorithm={routingAlgorithm}
+            />
+          </div>
         )}
       </div>
 

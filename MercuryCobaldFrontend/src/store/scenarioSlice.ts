@@ -79,8 +79,8 @@ export const runComputation = createAsyncThunk<SeriesResult, void, { state: Root
   "scenario/runComputation",
   async (_, { getState }) => {
     const effectiveScenario = getState().scenario.effectiveScenario!;
-    const { linkAssumptions, earthModel } = useUiStore.getState();
-    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions, earthModel);
+    const { linkAssumptions, earthModel, routingAlgorithm } = useUiStore.getState();
+    return scenarioApi.computeSeries(effectiveScenario, linkAssumptions, earthModel, routingAlgorithm);
   },
   { condition: (_, { getState }) => Boolean(getState().scenario.effectiveScenario) },
 );

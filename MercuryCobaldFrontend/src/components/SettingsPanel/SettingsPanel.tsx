@@ -5,7 +5,7 @@ import { useUiStore } from "../../store/useUiStore";
 import { useTerrainStore } from "../../store/useTerrainStore";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { setSimDate } from "../../store/scenarioSlice";
-import { DEFAULT_SIM_DATE } from "../../domain";
+import { DEFAULT_SIM_DATE, ROUTING_ALGORITHM_DESCRIPTION, ROUTING_ALGORITHM_IDS, ROUTING_ALGORITHM_LABEL } from "../../domain";
 import { ShadowAutoFailuresTrigger } from "../../features/configuration-editor/ShadowAutoFailuresTrigger";
 import { EnvironmentSettings } from "./EnvironmentSettings";
 import styles from "./SettingsPanel.module.css";
@@ -27,6 +27,8 @@ export function SettingsPanel() {
   const setLinkAssumptions = useUiStore((s) => s.setLinkAssumptions);
   const earthModel = useUiStore((s) => s.earthModel);
   const setEarthModel = useUiStore((s) => s.setEarthModel);
+  const routingAlgorithm = useUiStore((s) => s.routingAlgorithm);
+  const setRoutingAlgorithm = useUiStore((s) => s.setRoutingAlgorithm);
   const terrainStatus = useTerrainStore((s) => s.status);
   const terrainError = useTerrainStore((s) => s.error);
   const dispatch = useAppDispatch();
@@ -61,6 +63,27 @@ export function SettingsPanel() {
         {earthModel === "advanced" && terrainStatus === "error" && (
           <span className={styles.error}>Не удалось загрузить рельеф: {terrainError}</span>
         )}
+      </div>
+
+      <div className={styles.group}>
+        <span className={styles.groupTitle}>Алгоритм маршрутизации</span>
+        <span className={styles.hint}>
+          Как маршрут от клиентского пункта до шлюза выбирается среди активных межспутниковых связей. Выбор
+          применяется сразу — маршрут для текущего пункта и текущего момента пересчитывается немедленно, без
+          повторного «Запустить расчёт». Показать, что выдал бы каждый алгоритм прямо сейчас, можно в панели
+          «Маршрут».
+        </span>
+        <div className={styles.unitRow}>
+          {ROUTING_ALGORITHM_IDS.map((id) => (
+            <Chip
+              key={id}
+              label={ROUTING_ALGORITHM_LABEL[id]}
+              active={routingAlgorithm === id}
+              title={ROUTING_ALGORITHM_DESCRIPTION[id]}
+              onClick={() => setRoutingAlgorithm(id)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className={styles.group}>

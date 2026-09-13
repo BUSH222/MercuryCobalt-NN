@@ -8,7 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TimeDisplayUnit } from "../utils/time";
-import { DEFAULT_LINK_ASSUMPTIONS, type LinkAssumptions } from "../domain";
+import { DEFAULT_LINK_ASSUMPTIONS, DEFAULT_ROUTING_ALGORITHM, type LinkAssumptions, type RoutingAlgorithmId } from "../domain";
 
 export type MainView = "map-equirect" | "map-polar" | "map-3d" | "stats" | "compare" | "route";
 
@@ -34,6 +34,8 @@ interface UiState {
   /** Display-tunable physics assumptions (frequency, per-hop delay, status thresholds); not part of the scenario schema. */
   linkAssumptions: LinkAssumptions;
   earthModel: EarthModel;
+  /** Which pathfinding strategy builds client->gateway routes (see `utils/routing/`). Unlike `earthModel`/`linkAssumptions`, changing this re-runs the computation immediately — see `useRoutingAlgorithmSync`. */
+  routingAlgorithm: RoutingAlgorithmId;
   toggleSidebar: () => void;
   /** Opens/closes a panel; refuses to close the last remaining open panel. */
   togglePanel: (view: MainView) => void;
@@ -44,6 +46,7 @@ interface UiState {
   setExportOpen: (open: boolean) => void;
   setLinkAssumptions: (patch: Partial<LinkAssumptions>) => void;
   setEarthModel: (model: EarthModel) => void;
+  setRoutingAlgorithm: (algorithm: RoutingAlgorithmId) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -58,6 +61,7 @@ export const useUiStore = create<UiState>()(
       exportOpen: false,
       linkAssumptions: DEFAULT_LINK_ASSUMPTIONS,
       earthModel: "basic",
+      routingAlgorithm: DEFAULT_ROUTING_ALGORITHM,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       togglePanel: (view) =>
         set((s) => {
@@ -75,6 +79,7 @@ export const useUiStore = create<UiState>()(
       setExportOpen: (open) => set({ exportOpen: open }),
       setLinkAssumptions: (patch) => set((s) => ({ linkAssumptions: { ...s.linkAssumptions, ...patch } })),
       setEarthModel: (model) => set({ earthModel: model }),
+      setRoutingAlgorithm: (algorithm) => set({ routingAlgorithm: algorithm }),
     }),
     {
       name: "cosmohack-ui-settings",
@@ -85,6 +90,7 @@ export const useUiStore = create<UiState>()(
         timeUnit: state.timeUnit,
         linkAssumptions: state.linkAssumptions,
         earthModel: state.earthModel,
+        routingAlgorithm: state.routingAlgorithm,
       }),
     },
   ),

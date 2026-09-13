@@ -6,21 +6,9 @@
  * (scenario, snapshot, route).
  */
 import type { ClientLinkSample, GroundSite, LinkAssumptions, LinkStatus, Route, Scenario, Snapshot } from "../domain";
-import { groundSiteEcef, type Vec3 } from "./geometry";
+import { distanceKm, nodePosition } from "./nodePosition";
 
 const SPEED_OF_LIGHT_KM_S = 299792.458;
-
-function nodePosition(id: string, scenario: Scenario, snapshot: Snapshot): Vec3 | null {
-  const sat = snapshot.satellites.find((s) => s.id === id);
-  if (sat) return { x: sat.x_km, y: sat.y_km, z: sat.z_km };
-  const site = scenario.ground_sites.find((s) => s.id === id);
-  if (site) return groundSiteEcef(site.lat_deg, site.lon_deg);
-  return null;
-}
-
-function distanceKm(a: Vec3, b: Vec3): number {
-  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-}
 
 /** Standard free-space path loss: FSPL(dB) = 20log10(d_km) + 20log10(f_GHz) + 92.45. */
 function fsplDb(distanceKmValue: number, frequencyGhz: number): number {

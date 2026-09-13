@@ -4,10 +4,11 @@ import type {
   LinkAssumptions,
   ResultExport,
   Route,
+  RoutingAlgorithmId,
   Scenario,
   SeriesResult,
 } from "../domain";
-import { DEFAULT_LINK_ASSUMPTIONS, RESULT_SCHEMA_VERSION } from "../domain";
+import { DEFAULT_LINK_ASSUMPTIONS, DEFAULT_ROUTING_ALGORITHM, RESULT_SCHEMA_VERSION } from "../domain";
 import type { EarthModel } from "../store/useUiStore";
 import { applyAdvancedVisibility } from "../terrain";
 import { computeSnapshot, timeGrid } from "../utils/geometry";
@@ -26,12 +27,22 @@ function delay<T>(value: T, ms = SIMULATED_LATENCY_MS): Promise<T> {
 
 export interface ScenarioApi {
   loadScenarioFromText(text: string): Promise<ValidationResult>;
-  computeSeries(scenario: Scenario, assumptions?: LinkAssumptions, earthModel?: EarthModel): Promise<SeriesResult>;
+  computeSeries(
+    scenario: Scenario,
+    assumptions?: LinkAssumptions,
+    earthModel?: EarthModel,
+    routingAlgorithm?: RoutingAlgorithmId,
+  ): Promise<SeriesResult>;
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport;
   searchCoverage(scenario: Scenario, options?: CoverageSearchOptions): Promise<CoverageCandidate[]>;
 }
 
-function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions, earthModel: EarthModel): SeriesResult {
+function computeSeriesSync(
+  scenario: Scenario,
+  assumptions: LinkAssumptions,
+  earthModel: EarthModel,
+  routingAlgorithm: RoutingAlgorithmId,
+): SeriesResult {
   const grid = timeGrid(scenario.environment);
   const rawSnapshots = grid.map((t) => computeSnapshot(scenario, t));
   // Basic mode: computeSnapshot's own visibility, completely untouched. Advanced
@@ -48,7 +59,7 @@ function computeSeriesSync(scenario: Scenario, assumptions: LinkAssumptions, ear
   const samplesByClient: Record<string, ClientLinkSample[]> = {};
 
   for (const client of clients) {
-    const routes = snapshots.map((snap) => computeRoute(scenario, snap, client));
+    const routes = snapshots.map((snap) => computeRoute(scenario, snap, client, routingAlgorithm));
     routesByClient[client.id] = routes;
     const samples = routes.map((route, idx) => computeLinkSample(scenario, snapshots[idx]!, route, client, assumptions));
     fillHandoverTiming(samples);
@@ -84,8 +95,9 @@ export const scenarioApi: ScenarioApi = {
     scenario: Scenario,
     assumptions: LinkAssumptions = DEFAULT_LINK_ASSUMPTIONS,
     earthModel: EarthModel = "basic",
+    routingAlgorithm: RoutingAlgorithmId = DEFAULT_ROUTING_ALGORITHM,
   ): Promise<SeriesResult> {
-    return delay(computeSeriesSync(scenario, assumptions, earthModel), SIMULATED_LATENCY_MS);
+    return delay(computeSeriesSync(scenario, assumptions, earthModel, routingAlgorithm), SIMULATED_LATENCY_MS);
   },
 
   buildResultExport(scenario: Scenario, series: SeriesResult): ResultExport {
